@@ -1,22 +1,65 @@
-const cors = require('cors');
-const express = require("express");
-const dotenv = require("dotenv");
-const mongoose = require('mongoose');
+// Cargar el módulo dotenv para manejar las variables de entorno
+require('dotenv').config();
 
-// Conectar a MongoDB
-mongoose.connect('mongodb://localhost:27017/mydatabase', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
-        console.log('🚀 Connected to MongoDB');
-    })
-    .catch((err) => {
-        console.error('Failed to connect to MongoDB', err);
-    });
+// Importar el módulo moviedb-promise
+const MovieDB = require('moviedb-promise');
 
-// Crear la aplicación Express
-const app = express();
+// Crear una instancia de MovieDB con la clave API
+const apiKey = process.env.API_KEY; // Asegúrate de tener tu clave API en el archivo .env
+const moviedb = new MovieDB(apiKey);
 
-// Configurar el puerto
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(` 🚀 Server is running on port ${port}`);
-});
+// Función para obtener y mostrar las películas populares
+function getPopularMovies() {
+    moviedb.popularMovies()
+        .then(response => {
+            console.log('Películas Populares:');
+            response.results.forEach(movie => {
+                console.log(`${movie.title} (ID: ${movie.id})`);
+            });
+        })
+        .catch(error => {
+            console.error('Error al obtener películas populares:', error);
+        });
+}
+
+// Función para buscar una película por título
+function searchMovieByTitle(title) {
+    moviedb.searchMovie({ query: title })
+        .then(response => {
+            if (response.results.length > 0) {
+                console.log(`Resultados para "${title}":`);
+                response.results.forEach(movie => {
+                    console.log(`${movie.title} (ID: ${movie.id})`);
+                });
+            } else {
+                console.log(`No se encontraron resultados para "${title}".`);
+            }
+        })
+        .catch(error => {
+            console.error('Error al buscar película:', error);
+        });
+}
+
+// Función para obtener detalles de una película específica
+function getMovieDetails(movieId) {
+    moviedb.movieInfo(movieId)
+        .then(response => {
+            console.log('Detalles de la Película:');
+            console.log(`Título: ${response.title}`);
+            console.log(`Sinopsis: ${response.overview}`);
+            console.log(`Fecha de Estreno: ${response.release_date}`);
+            console.log(`Promedio de Votos: ${response.vote_average}`);
+        })
+        .catch(error => {
+            console.error('Error al obtener detalles de la película:', error);
+        });
+}
+
+// Ejemplo de uso
+getPopularMovies(); // Muestra las películas populares
+
+// Busca una película por título 
+searchMovieByTitle('Deadpool');
+
+// Obtén detalles de una película específica (reemplaza '123' con el ID real de una película)
+getMovieDetails(123);

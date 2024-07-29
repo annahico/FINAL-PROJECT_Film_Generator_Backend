@@ -2,28 +2,40 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
-import apiRoutes from './routes/api/api';
+import { logger } from './helpers/logger';
+import apiMovieRoutes from './routes/api/movies';
+import apiUserRoutes from './routes/api/users';
+
+// Cargar variables de entorno
+dotenv.config();
+
+// Inicializar la aplicación Express
 const app = express();
-const env = dotenv.config().parsed;
-app.use(bodyParser.urlencoded({ extended: false }));
+
+// Middleware para parsear JSON
 app.use(bodyParser.json());
 
-app.listen(env.PORT, () => {
-    console.log(`app is listening to port ${env.PORT}`);
-});
-
-//config mongodb
-const db = env.MONGO_URI;
-//connect to db
+// Conectar a la base de datos MongoDB
+const db = process.env.MONGO_URI; // Asegúrate de definir MONGO_URI en tu archivo .env
 mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
-        console.log('Mongoose successfully connected');
-    }).catch((err) => {
-        console.log(err);
+        logger.info('Connected to MongoDB');
+    })
+    .catch((err) => {
+        logger.error('Database connection error:', err);
     });
 
+// Rutas
+app.use('/api/users', apiUserRoutes); // Usa solo una ruta de usuario
+app.use('/api/movies', apiMovieRoutes);
 
-app.use("/api", apiRoutes);
+// Ruta de prueba
 app.get('/', (req, res) => {
-    res.send('Welcome to babel node');
+    res.send('Welcome to Babel Node');
+});
+
+// Configurar el puerto del servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    logger.info(`Server is running on port ${PORT}`);
 });
