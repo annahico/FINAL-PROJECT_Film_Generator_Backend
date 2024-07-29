@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
+// import { movieGenerationModel } from '../tsModels/movieGenerationModel'; 
+
 const { Schema } = mongoose;
 
 const MovieSchema = new Schema({
     userId: {
         type: String,
-        required: true, // Asegúrate de que cada documento tenga un userId
+        required: true,
     },
     userMovies: [
         {
@@ -18,11 +20,11 @@ const MovieSchema = new Schema({
                     required: true,
                 },
                 with_genres: {
-                    type: [String], // Define el tipo de elementos en el array
+                    type: [String], // Assuming genres are strings, adjust if otherwise
                     required: true,
                 },
                 primary_release_year: {
-                    type: Number, // Considera usar Number si es un año
+                    type: String,
                     required: false,
                 },
             },
@@ -41,11 +43,11 @@ const MovieSchema = new Schema({
                         required: true,
                     },
                     movieReleaseYear: {
-                        type: Number, // Considera usar Number si es un año
+                        type: String,
                         required: false,
                     },
                     movieGenres: {
-                        type: [String], // Define el tipo de elementos en el array
+                        type: [String], // Assuming genres are strings, adjust if otherwise
                         required: true,
                     },
                     moviePopularity: {
@@ -58,7 +60,5 @@ const MovieSchema = new Schema({
     ],
 });
 
-// Crear un índice en userId para mejorar la búsqueda
-MovieSchema.index({ userId: 1 });
-
-export default mongoose.model('Movie', MovieSchema);
+// Export the schema model correctly
+export default mongoose.model<movieGenerationModel>('movies', MovieSchema);
