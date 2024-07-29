@@ -2,15 +2,15 @@
 require('dotenv').config();
 
 // Importar el módulo moviedb-promise
-const MovieDB = require('moviedb-promise');
+const MovieDb = require('moviedb-promise');
 
-// Crear una instancia de MovieDB con la clave API
+// Crear una instancia de MovieDb con la clave API
 const apiKey = process.env.API_KEY; // Asegúrate de tener tu clave API en el archivo .env
-const moviedb = new MovieDB(apiKey);
+const moviedb = new MovieDb(apiKey);
 
 // Función para obtener y mostrar las películas populares
 function getPopularMovies() {
-    moviedb.popularMovies()
+    moviedb.moviePopular()
         .then(response => {
             console.log('Películas Populares:');
             response.results.forEach(movie => {
@@ -24,7 +24,7 @@ function getPopularMovies() {
 
 // Función para buscar una película por título
 function searchMovieByTitle(title) {
-    moviedb.searchMovie({ query: title })
+    moviedb.movieSearch({ query: title })
         .then(response => {
             if (response.results.length > 0) {
                 console.log(`Resultados para "${title}":`);

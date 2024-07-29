@@ -1,6 +1,8 @@
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import helmet from 'helmet';
 import mongoose from 'mongoose';
 import { logger } from './helpers/logger';
 import apiMovieRoutes from './routes/api/movies';
@@ -13,6 +15,8 @@ dotenv.config();
 const app = express();
 
 // Middleware para parsear JSON
+app.use(cors());
+app.use(helmet());
 app.use(bodyParser.json());
 
 // Conectar a la base de datos MongoDB

@@ -1,50 +1,54 @@
 import { logger } from '../helpers/logger';
-import MovieSchema from '../models/movie';
+import MovieSchema from '../models/movieModel'; // Usa solo una importación del modelo
 
 /**
- * @Desc Writes movies to the database for a specific user
+ * @Desc Writes generated movies to the database
  * @param {Object} movieGeneration Generated movies to write to the database
  * @param {String} userId The ID of the user in question
  */
 export async function writeToDatabase(movieGeneration, userId) {
     try {
-        const user = await MovieSchema.findOne({ userId });
+        const user = await MovieSchema.findOne({ userId: userId });
 
         if (user) {
+            // Si el usuario ya existe, actualizamos su lista de películas
             await MovieSchema.updateOne(
-                { userId },
+                { userId: userId },
                 { $push: { userMovies: movieGeneration } }
             );
-            logger.info(`Movies for user ${userId} have been added to the database`);
+            logger.info(`Movies for user ${userId} have been updated in the database.`);
         } else {
+            // Si el usuario no existe, creamos un nuevo documento
             const newUserMovies = new MovieSchema({
-                userId,
-                userMovies: [movieGeneration], // Wrap in an array for consistency
+                userId: userId,
+                userMovies: [movieGeneration],
             });
+
             await newUserMovies.save();
-            logger.info(`User Movies generated and saved for: ${userId}`);
+            logger.info(`User movies created for ${userId}.`);
         }
     } catch (err) {
-        logger.error(`Failed to write to database: ${err.message}`);
-        throw new Error(`Failed to write to database: ${err.message}`);
+        logger.error(`Failed to write movies to the database: ${err.message}`);
+        throw new Error('Failed to write movies to the database');
     }
 }
 
 /**
- * @Desc Gets movie curation for a user
+ * @Desc Gets movie curation for a user from the database
  * @param {String} userId The ID of the user
- * @returns {Promise<Array>} The list of user movies
+ * @returns {Promise<Array|String>} The user's movies or an error message
  */
 export async function getMoviesFromDatabase(userId) {
     try {
-        const movieGens = await MovieSchema.findOne({ userId });
-        if (!movieGens) {
-            logger.warn(`No movies found for user ${userId}`);
-            return [];
+        const userMovies = await MovieSchema.findOne({ userId: userId });
+
+        if (userMovies) {
+            return userMovies.userMovies;
+        } else {
+            return `Unable to find user movies for ${userId}`;
         }
-        return movieGens.userMovies;
     } catch (err) {
-        logger.error(`Failed to retrieve movies from database: ${err.message}`);
-        throw new Error(`Failed to retrieve movies from database: ${err.message}`);
+        logger.error(`Failed to retrieve movies from the database: ${err.message}`);
+        throw new Error('Failed to retrieve movies from the database');
     }
 }

@@ -15,10 +15,12 @@
     "cors": "^2.8.5",
     "dotenv": "^8.6.0",
     "express": "^4.17.1",
+    "helmet": "^4.6.0",
     "mongoose": "^5.13.22",
     "moviedb-promise": "^4.0.7",
     "semver": "^7.6.3",
-    "simple-update-notifier": "^2.0.0"
+    "simple-update-notifier": "^2.0.0",
+    "winston": "^3.13.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.24.8",
