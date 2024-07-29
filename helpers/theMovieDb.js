@@ -6,7 +6,7 @@ import winston from 'winston';
 dotenv.config();
 
 // Inicializar MovieDb con la clave API desde las variables de entorno
-const moviedb = new MovieDb(process.env.TMDB_API_KEY); // Asegúrate de usar la clave API correcta
+const moviedb = new MovieDb(process.env.TMDB_API_KEY); // Usa la variable de entorno correcta
 
 // Configuración de Winston para logging
 const logger = winston.createLogger({
