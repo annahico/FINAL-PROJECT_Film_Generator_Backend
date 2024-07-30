@@ -1,6 +1,6 @@
 import { logger } from '../helpers/logger';
-import MovieSchema from '../models/movieModel';
-import { movieGenerationModel, singleGenerationObject } from '../tsModels/movieGernerationModel';
+import MovieSchema from '../MongoModels/movieModel';
+import { movieGenerationModel, singleGenerationObject } from "../tsModels/movieGenerationModel";
 
 export async function writeToDatabase(movieGeneration: singleGenerationObject, userId: string): Promise<void> {
     try {

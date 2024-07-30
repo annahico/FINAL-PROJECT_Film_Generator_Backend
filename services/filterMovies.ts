@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { MovieDb } from 'moviedb-promise';
 import endpointsConfig from '../endpoints.config';
 import { logger } from '../helpers/logger';
-import { movieObject, MovieResult, movieSearchCriteriaModel, singleGenerationObject } from '../tsModels/movieGernerationModel';
+import { movieObject, MovieResult, movieSearchCriteriaModel, singleGenerationObject } from '../tsModels/userModel';
 
 dotenv.config();
 
