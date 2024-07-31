@@ -35,46 +35,66 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.movies = void 0;
-var dotenv_1 = __importDefault(require("dotenv"));
-var moviedb_promise_1 = require("moviedb-promise");
-var winston_1 = __importDefault(require("winston"));
-// Cargar variables de entorno
-dotenv_1.default.config();
-// Inicializar MovieDb con la clave API desde las variables de entorno
-var moviedb = new moviedb_promise_1.MovieDb(process.env.TMDB_API_KEY); // Usa la variable de entorno correcta
-// Configuración de Winston para logging
-var logger = winston_1.default.createLogger({
-    level: 'error',
-    format: winston_1.default.format.simple(),
-    transports: [
-        new winston_1.default.transports.Console()
-    ],
-});
-var movies = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var movieData, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, moviedb.discoverMovie({
-                        with_genres: '28,53', // Acción y Thriller
-                    })];
-            case 1:
-                movieData = _a.sent();
-                return [2 /*return*/, movieData];
-            case 2:
-                err_1 = _a.sent();
-                // Maneja y registra el error
-                logger.error('Error al obtener películas:', err_1);
-                throw new Error('Error al obtener películas'); // Proporciona un mensaje de error más informativo
-            case 3: return [2 /*return*/];
-        }
+exports.revisedQuery = revisedQuery;
+exports.formatQuery = formatQuery;
+var logger_1 = require("./logger");
+function revisedQuery(_a) {
+    return __awaiter(this, arguments, void 0, function (_b) {
+        var keywordsList, genreList;
+        var with_genres = _b.with_genres, with_keywords = _b.with_keywords, sort_by = _b.sort_by, primary_release_year = _b.primary_release_year;
+        return __generator(this, function (_c) {
+            try {
+                if (primary_release_year) {
+                    return [2 /*return*/, {
+                            with_genres: with_genres,
+                            with_keywords: with_keywords,
+                            sort_by: sort_by
+                        }];
+                }
+                if (with_keywords) {
+                    keywordsList = with_keywords.split(",");
+                    keywordsList.splice(-1, 1);
+                    return [2 /*return*/, {
+                            with_genres: with_genres,
+                            sort_by: sort_by,
+                            with_keywords: keywordsList.toString()
+                        }];
+                }
+                if (sort_by) {
+                    return [2 /*return*/, {
+                            with_genres: with_genres
+                        }];
+                }
+                if (with_genres) {
+                    genreList = with_genres.split(",");
+                    genreList.splice(-1, 1);
+                    return [2 /*return*/, {
+                            with_genres: genreList.toString()
+                        }];
+                }
+                return [2 /*return*/, {}];
+            }
+            catch (err) {
+                logger_1.logger.error("Failed to revise query: ".concat(err.message));
+                throw err;
+            }
+            return [2 /*return*/];
+        });
     });
-}); };
-exports.movies = movies;
+}
+function formatQuery(movieSearchCriteria) {
+    return __awaiter(this, void 0, void 0, function () {
+        var yearRange;
+        return __generator(this, function (_a) {
+            if (movieSearchCriteria === null || movieSearchCriteria === void 0 ? void 0 : movieSearchCriteria.primary_release_year) {
+                yearRange = movieSearchCriteria.primary_release_year.toString().split("-");
+                movieSearchCriteria['release_date.gte'] = "".concat(yearRange[0], "-01-01");
+                movieSearchCriteria['release_date.lte'] = "".concat(yearRange[1], "-01-01");
+                delete movieSearchCriteria.primary_release_year;
+            }
+            return [2 /*return*/, movieSearchCriteria];
+        });
+    });
+}
 //# sourceMappingURL=theMovieDb.js.map

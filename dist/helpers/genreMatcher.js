@@ -36,8 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.genreMatcher = genreMatcher;
 exports.listMatcher = listMatcher;
-exports.stringMatcher = stringMatcher;
 var movieGenreOBJ = {
     '37': 'Western',
     '28': 'Action',
@@ -60,37 +60,31 @@ var movieGenreOBJ = {
     '10752': 'War'
 };
 function genreMatcher(genres) {
-    var returnGenres = '';
-    for (var _i = 0, genres_1 = genres; _i < genres_1.length; _i++) {
-        var genre = genres_1[_i];
-        returnGenres += movieGenreOBJ[genre] ? (returnGenres.length === 0) ? "".concat(movieGenreOBJ[genre]) : ", ".concat(movieGenreOBJ[genre]) : null;
-    }
-    return returnGenres;
+    return __awaiter(this, void 0, void 0, function () {
+        var returnGenres, _i, genres_1, genre;
+        return __generator(this, function (_a) {
+            returnGenres = '';
+            for (_i = 0, genres_1 = genres; _i < genres_1.length; _i++) {
+                genre = genres_1[_i];
+                returnGenres += movieGenreOBJ[genre] ? (returnGenres.length === 0) ? "".concat(movieGenreOBJ[genre]) : ", ".concat(movieGenreOBJ[genre]) : null;
+            }
+            return [2 /*return*/, returnGenres];
+        });
+    });
 }
 function listMatcher(movieGenres) {
     return __awaiter(this, void 0, void 0, function () {
         var genres;
         return __generator(this, function (_a) {
-            if (!movieGenres) {
-                return [2 /*return*/, ''];
+            switch (_a.label) {
+                case 0:
+                    if (!movieGenres) {
+                        return [2 /*return*/, ''];
+                    }
+                    genres = movieGenres.toString().split(",");
+                    return [4 /*yield*/, genreMatcher(genres)];
+                case 1: return [2 /*return*/, _a.sent()];
             }
-            genres = movieGenres.toString().split(",");
-            return [2 /*return*/, genreMatcher(genres)];
-        });
-    });
-}
-function stringMatcher(movieGenres) {
-    return __awaiter(this, void 0, void 0, function () {
-        var genres;
-        return __generator(this, function (_a) {
-            if (!movieGenres) {
-                return [2 /*return*/, 'All Genres'];
-            }
-            ;
-            console.log(movieGenres);
-            genres = movieGenres.split(",");
-            console.log('passed');
-            return [2 /*return*/, genreMatcher(genres)];
         });
     });
 }
