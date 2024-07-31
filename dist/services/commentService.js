@@ -46,10 +46,11 @@ exports.deleteComment = deleteComment;
 exports.setScore = setScore;
 var commentModel_1 = __importDefault(require("../MongoModels/commentModel"));
 var logger_1 = require("../helpers/logger");
-var movieDbService_1 = require("../services/movieDbService");
+var discussionDbService_1 = require("../services/discussionDbService");
+// Método para actualizar un comentario existente
 function updateSingleComment(_id, commentText) {
     return __awaiter(this, void 0, void 0, function () {
-        var err_1;
+        var result, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -59,10 +60,10 @@ function updateSingleComment(_id, commentText) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, commentModel_1.default.updateOne({ _id: _id }, { $set: { commentText: commentText } })];
+                    return [4 /*yield*/, commentModel_1.default.updateOne({ _id: _id }, { $set: { commentText: commentText } }).exec()];
                 case 2:
-                    _a.sent();
-                    return [2 /*return*/, true];
+                    result = _a.sent();
+                    return [2 /*return*/, result.modifiedCount > 0];
                 case 3:
                     err_1 = _a.sent();
                     logger_1.logger.error("Failed to update comment: ".concat(err_1.message));
@@ -72,9 +73,10 @@ function updateSingleComment(_id, commentText) {
         });
     });
 }
+// Método para agregar un nuevo comentario
 function addComment(commentData) {
     return __awaiter(this, void 0, void 0, function () {
-        var commentObj, newComment, savedComment, err_2;
+        var commentObj, savedComment, err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -86,27 +88,16 @@ function addComment(commentData) {
                             userName: commentData.userName
                         },
                         commentText: commentData.commentText,
-                        commentDownVotes: 0,
-                        commentUpVotes: 0,
+                        commentDownVotes: [], // Inicializar como un array vacío de números
+                        commentUpVotes: [], // Inicializar como un array vacío de números
                         isDeleted: false,
                         depth: commentData.depth || 1,
                         parentId: commentData.parentId || null
                     };
-                    newComment = new commentModel_1.default(commentObj);
-                    return [4 /*yield*/, newComment.save()];
+                    return [4 /*yield*/, new commentModel_1.default(commentObj).save()];
                 case 1:
                     savedComment = _a.sent();
-                    // Transformar el documento guardado al tipo tsCommentSchema
-                    return [2 /*return*/, {
-                            movieId: savedComment.movieId,
-                            user: savedComment.user,
-                            commentText: savedComment.commentText,
-                            commentDownVotes: savedComment.commentDownVotes,
-                            commentUpVotes: savedComment.commentUpVotes,
-                            isDeleted: savedComment.isDeleted,
-                            depth: savedComment.depth,
-                            parentId: savedComment.parentId
-                        }];
+                    return [2 /*return*/, savedComment.toObject()];
                 case 2:
                     err_2 = _a.sent();
                     logger_1.logger.error("Failed to add comment: ".concat(err_2.message));
@@ -116,14 +107,15 @@ function addComment(commentData) {
         });
     });
 }
+// Método para obtener los comentarios de una película
 function getCommentsForPost(movie) {
     return __awaiter(this, void 0, void 0, function () {
-        var isDiscussion, commentsForMovie, threads, filterChildren_1, _i, commentsForMovie_1, comment, err_3;
+        var isDiscussion, commentsForMovie, threads_1, filterChildren_1, err_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, (0, movieDbService_1.checkIfDiscussionExists)(movie.movieId)];
+                    return [4 /*yield*/, (0, discussionDbService_1.checkIfDiscussionExists)(movie.movieId)];
                 case 1:
                     isDiscussion = _a.sent();
                     if (!isDiscussion) {
@@ -132,11 +124,12 @@ function getCommentsForPost(movie) {
                     return [4 /*yield*/, commentModel_1.default.find({ movieId: movie.movieId }).lean().exec()];
                 case 2:
                     commentsForMovie = _a.sent();
-                    threads = {};
+                    threads_1 = {};
                     filterChildren_1 = function (comment, thread) {
+                        var _a;
                         for (var key in thread) {
                             var value = thread[key];
-                            if (key === comment.parentId.toString()) {
+                            if (key === ((_a = comment.parentId) === null || _a === void 0 ? void 0 : _a.toString())) {
                                 value.children[comment._id] = comment;
                                 return;
                             }
@@ -145,19 +138,18 @@ function getCommentsForPost(movie) {
                             }
                         }
                     };
-                    for (_i = 0, commentsForMovie_1 = commentsForMovie; _i < commentsForMovie_1.length; _i++) {
-                        comment = commentsForMovie_1[_i];
+                    commentsForMovie.forEach(function (comment) {
                         if (comment.commentScore < -5)
                             comment.commentText = "This comment is hidden due to low scoring";
                         comment['children'] = {};
                         if (!comment.parentId) {
-                            threads[comment._id] = comment;
+                            threads_1[comment._id] = comment;
                         }
                         else {
-                            filterChildren_1(comment, threads);
+                            filterChildren_1(comment, threads_1);
                         }
-                    }
-                    return [2 /*return*/, { count: commentsForMovie.length, comments: threads }];
+                    });
+                    return [2 /*return*/, { count: commentsForMovie.length, comments: threads_1 }];
                 case 3:
                     err_3 = _a.sent();
                     logger_1.logger.error("Failed to get comments for movie ".concat(movie.movieId, ": ").concat(err_3.message));
@@ -167,6 +159,7 @@ function getCommentsForPost(movie) {
         });
     });
 }
+// Método para eliminar un comentario
 function deleteComment(_id) {
     return __awaiter(this, void 0, void 0, function () {
         var err_4;
@@ -174,7 +167,7 @@ function deleteComment(_id) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, commentModel_1.default.findOneAndUpdate({ _id: _id }, { $set: { commentText: 'This comment has been deleted', 'user.userId': null, 'user.userName': 'Unknown', isDeleted: true } }, { new: true })];
+                    return [4 /*yield*/, commentModel_1.default.findOneAndUpdate({ _id: _id }, { $set: { commentText: 'This comment has been deleted', 'user.userId': null, 'user.userName': 'Unknown', isDeleted: true } }, { new: true }).exec()];
                 case 1: return [2 /*return*/, _a.sent()];
                 case 2:
                     err_4 = _a.sent();
@@ -185,6 +178,7 @@ function deleteComment(_id) {
         });
     });
 }
+// Método para actualizar la puntuación de un comentario
 function setScore(_id, commentScore, value, userId, changedFromUpVote, changedFromDownVote) {
     return __awaiter(this, void 0, void 0, function () {
         var scoreType, err_5;
@@ -194,15 +188,15 @@ function setScore(_id, commentScore, value, userId, changedFromUpVote, changedFr
                 case 0:
                     _b.trys.push([0, 6, , 7]);
                     if (!changedFromDownVote) return [3 /*break*/, 2];
-                    return [4 /*yield*/, commentModel_1.default.findByIdAndUpdate(_id, { $set: { commentScore: commentScore }, $pull: { commentDownVotes: userId } }, { new: true })];
+                    return [4 /*yield*/, commentModel_1.default.findByIdAndUpdate(_id, { $set: { commentScore: commentScore }, $pull: { commentDownVotes: userId } }, { new: true }).exec()];
                 case 1: return [2 /*return*/, _b.sent()];
                 case 2:
                     if (!changedFromUpVote) return [3 /*break*/, 4];
-                    return [4 /*yield*/, commentModel_1.default.findByIdAndUpdate(_id, { $set: { commentScore: commentScore }, $pull: { commentUpVotes: userId } }, { new: true })];
+                    return [4 /*yield*/, commentModel_1.default.findByIdAndUpdate(_id, { $set: { commentScore: commentScore }, $pull: { commentUpVotes: userId } }, { new: true }).exec()];
                 case 3: return [2 /*return*/, _b.sent()];
                 case 4:
                     scoreType = (value === 1) ? 'commentUpVotes' : 'commentDownVotes';
-                    return [4 /*yield*/, commentModel_1.default.findByIdAndUpdate(_id, { $set: { commentScore: commentScore }, $push: (_a = {}, _a[scoreType] = userId, _a) }, { new: true })];
+                    return [4 /*yield*/, commentModel_1.default.findByIdAndUpdate(_id, { $set: { commentScore: commentScore }, $push: (_a = {}, _a[scoreType] = userId, _a) }, { new: true }).exec()];
                 case 5: return [2 /*return*/, _b.sent()];
                 case 6:
                     err_5 = _b.sent();

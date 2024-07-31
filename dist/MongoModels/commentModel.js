@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importDefault(require("mongoose"));
 var Schema = mongoose_1.default.Schema;
-// Create Schema
+// Define el esquema para los comentarios
 var CommentSchema = new Schema({
     movieId: {
         type: String,
@@ -40,13 +40,14 @@ var CommentSchema = new Schema({
         default: false
     },
     commentUpVotes: {
-        type: Array,
+        type: [mongoose_1.default.Schema.Types.ObjectId], // Cambiado a un array de ObjectId
         default: []
     },
     commentDownVotes: {
-        type: Array,
+        type: [mongoose_1.default.Schema.Types.ObjectId], // Cambiado a un array de ObjectId
         default: []
     }
 });
-exports.default = mongoose_1.default.model('comments', CommentSchema);
+// Exporta el modelo basado en el esquema
+exports.default = mongoose_1.default.model('Comment', CommentSchema);
 //# sourceMappingURL=commentModel.js.map

@@ -42,53 +42,85 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkIfDiscussionExists = checkIfDiscussionExists;
 exports.createDiscussion = createDiscussion;
 exports.getAllDiscussions = getAllDiscussions;
+exports.getMovie = getMovie;
 var logger_1 = require("../helpers/logger");
 var discussionModel_1 = __importDefault(require("../MongoModels/discussionModel"));
 function checkIfDiscussionExists(movieId) {
     return __awaiter(this, void 0, void 0, function () {
+        var discussion, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, discussionModel_1.default.findOne({ movieId: movieId })
-                        .then(function (discussion) {
-                        if (discussion) {
-                            return true;
-                        }
-                        return false;
-                    }).catch(function (err) {
-                        logger_1.logger.error("Failed to find movie discussion: ".concat(err.message));
-                        throw err;
-                    })];
-                case 1: return [2 /*return*/, _a.sent()];
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, discussionModel_1.default.findOne({ movieId: movieId }).exec()];
+                case 1:
+                    discussion = _a.sent();
+                    return [2 /*return*/, !!discussion];
+                case 2:
+                    err_1 = _a.sent();
+                    logger_1.logger.error("Failed to find movie discussion: ".concat(err_1.message));
+                    throw err_1;
+                case 3: return [2 /*return*/];
             }
         });
     });
 }
 function createDiscussion(movie) {
     return __awaiter(this, void 0, void 0, function () {
+        var err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, new discussionModel_1.default(movie).save()
-                        .then(function (discussion) { return true; })
-                        .catch(function (err) {
-                        logger_1.logger.error("Failed to create new discussion: ".concat(err.message));
-                        throw err;
-                    })];
-                case 1: return [2 /*return*/, _a.sent()];
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, new discussionModel_1.default(movie).save()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, true];
+                case 2:
+                    err_2 = _a.sent();
+                    logger_1.logger.error("Failed to create new discussion: ".concat(err_2.message));
+                    throw err_2;
+                case 3: return [2 /*return*/];
             }
         });
     });
 }
 function getAllDiscussions() {
     return __awaiter(this, void 0, void 0, function () {
+        var discussions, err_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, discussionModel_1.default.find({}).lean()
-                        .then(function (discussions) { return discussions; })
-                        .catch(function (err) {
-                        logger_1.logger.error("Failed to get all discussions: ".concat(err.message));
-                        throw err;
-                    })];
-                case 1: return [2 /*return*/, _a.sent()];
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, discussionModel_1.default.find({}).lean().exec()];
+                case 1:
+                    discussions = _a.sent();
+                    return [2 /*return*/, discussions];
+                case 2:
+                    err_3 = _a.sent();
+                    logger_1.logger.error("Failed to get all discussions: ".concat(err_3.message));
+                    throw err_3;
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+function getMovie(movieId) {
+    return __awaiter(this, void 0, void 0, function () {
+        var movies, err_4;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, discussionModel_1.default.find({ movieId: movieId }).lean().exec()];
+                case 1:
+                    movies = _a.sent();
+                    return [2 /*return*/, movies];
+                case 2:
+                    err_4 = _a.sent();
+                    logger_1.logger.error("Failed to get movie from database: ".concat(err_4.message));
+                    throw err_4;
+                case 3: return [2 /*return*/];
             }
         });
     });
