@@ -1,101 +1,124 @@
-/* eslint-disable */
-import { MovieDb } from 'moviedb-promise';
-import endpointsConfig from '../endpoints.config';
+import MovieSchema from '../MongoModels/movieModel';
+import TrendingSchema from '../MongoModels/trending';
 import { logger } from '../helpers/logger';
-import { movieObject, MovieResult, movieSearchCriteriaModel, singleGenerationObject } from '../tsModels/movieGernerationModel';
-
-const moviedb = new MovieDb(endpointsConfig.TMDB3);
+import { singleGenerationObject } from '../tsModels/movieGenerationModel';
 
 /**
- * @Desc function returns list of movies from the API
- * @param {movieSearchCriteriaModel} movieSearchCriteria object of the user input
- * @return {Promise<MovieResult[] | undefined>} A promise resolving to a list of movies or undefined
+ * Check if user exists in the database
+ * @param {String} userId
  */
-async function getMovies(movieSearchCriteria: movieSearchCriteriaModel): Promise<MovieResult[] | undefined> {
+async function getUser(userId: string) {
     try {
-        const movies = await moviedb.discoverMovie(movieSearchCriteria);
-        return movies.results;
+        return await MovieSchema.findOne({ userId }).lean();
     } catch (err) {
-        logger.error(`Error in getting movies: ${err}`);
-        throw new Error('Failed to retrieve movies');
+        logger.error(`Error in getting user: ${err.message}`);
+        throw err;
     }
 }
 
 /**
- * @Desc function filters the movies
- * @param {MovieResult[]} allMovies JSON from API with list of movies
- * @param {movieSearchCriteriaModel} movieSearchCriteria object of the user input
- * @return {Promise<singleGenerationObject>} A promise resolving to a filtered list of movies
+ * Write generated movies to the database for a specific user
+ * @param {singleGenerationObject} userMovies - Generated movies to write to the database
+ * @param {String} userId - The ID of the user in question
  */
-async function filterMovies(allMovies: MovieResult[], movieSearchCriteria: movieSearchCriteriaModel): Promise<singleGenerationObject> {
-    let filteredMovies: MovieResult[] = [];
-    
+export async function writeToDatabase(userMovies: singleGenerationObject, userId: string): Promise<singleGenerationObject | undefined> {
     try {
-        filteredMovies = allMovies.slice(0, 10); // Select the top 10 movies
-    } catch (err) {
-        logger.error(`Error in filtering movies: ${err}`);
-        throw new Error('Failed to filter movies');
-    }
+        const user = await getUser(userId);
 
-    const movieReturnObj: singleGenerationObject = {
-        movieGenerationDate: new Date().toISOString(),
-        movieSearchCriteria: movieSearchCriteria,
-        movies: [],
-    };
+        if (user) {
+            const updatedUser = await MovieSchema.findOneAndUpdate(
+                { userId },
+                { $push: { userMovies } },
+                { new: true, lean: true }
+            );
 
-    try {
-        for (const movie of filteredMovies) {
-            const newMovieObj = returnMovieGenerationObject();
-            newMovieObj.movieId = movie.id;
-            newMovieObj.movieTitle = movie.title;
-            newMovieObj.movieDescription = movie.overview;
-            newMovieObj.movieReleaseYear = movie.release_date ? movie.release_date.split('-')[0] : undefined;
-            newMovieObj.movieGenres = movie.genre_ids;
-            newMovieObj.moviePopularity = movie.popularity;
+            const lastElem = updatedUser?.userMovies.length || null;
+            if (lastElem) {
+                return updatedUser.userMovies[lastElem - 1];
+            }
+        } else {
+            const newuserMovies = new MovieSchema({
+                userId,
+                userMovies
+            });
 
-            movieReturnObj.movies.push(newMovieObj);
+            const res = await newuserMovies.save();
+            return res.userMovies[0];
         }
-        return movieReturnObj;
     } catch (err) {
-        logger.error(`Failed to format movies: ${err}`);
-        throw new Error('Failed to format movies');
+        logger.error(`Error writing to database: ${err.message}`);
+        throw err;
     }
 }
 
 /**
- * @Desc Place holder for movieGeneration object
- * @return {movieObject} returns a blank movie object
+ * Get all movie curations for a specific user
+ * @param {String} userId
  */
-function returnMovieGenerationObject(): movieObject {
-    return {
-        movieId: 0,
-        movieTitle: '',
-        movieDescription: '',
-        movieReleaseYear: '',
-        movieGenres: [],
-        moviePopularity: 0,
-    };
+export async function getMoviesFromDatabase(userId: string): Promise<singleGenerationObject[] | null> {
+    try {
+        const user = await getUser(userId);
+        return user ? user.userMovies : null;
+    } catch (err) {
+        logger.error(`Error retrieving user movies: ${err.message}`);
+        throw err;
+    }
 }
 
 /**
- * @Desc Returns formatted movies to the API
- * @return {Promise<singleGenerationObject>} A promise resolving to the final movie object
+ * Get playlists and trending movies for a specific user
+ * @param {String} userId
  */
-export async function returnMovies(): Promise<singleGenerationObject> {
-    const movieSearchCriteria: movieSearchCriteriaModel = {
-        sort_by: 'popularity.desc',
-        with_genres: '28,53',
-        primary_release_year: 2015,
-    };
-
+export async function getPlaylistsFromDatabase(userId: string) {
     try {
-        const movies = await getMovies(movieSearchCriteria);
-        if (!movies) throw new Error('No movies found');
-        
-        const filteredMovies = await filterMovies(movies, movieSearchCriteria);
-        return filteredMovies;
+        const trendingNow = await getTrendingNowPage();
+        const user = await getUser(userId);
+
+        return {
+            userPlaylists: user?.userPlaylists || [],
+            trendingNow
+        };
     } catch (err) {
-        logger.error(`Failed to return movies: ${err}`);
-        throw new Error('Failed to return movies');
+        logger.error(`Failed to get playlists from database: ${err.message}`);
+        throw err;
+    }
+}
+
+/**
+ * Get the trending movies page
+ */
+async function getTrendingNowPage() {
+    try {
+        const trending = await TrendingSchema.find({}).lean();
+        return trending[0];
+    } catch (err) {
+        logger.error(`Failed to get trending now page: ${err.message}`);
+        throw err;
+    }
+}
+
+/**
+ * Get all movies from the database
+ */
+export async function getAllMovies() {
+    try {
+        return await MovieSchema.find({}).lean();
+    } catch (err) {
+        logger.error(`Failed to get all movies: ${err.message}`);
+        throw err;
+    }
+}
+
+/**
+ * Get a single generation by its ID
+ * @param {String} generationId
+ */
+export async function getSingleGeneration(generationId: string) {
+    try {
+        const generations = await MovieSchema.findOne({ 'userMovies._id': generationId }).lean();
+        return generations?.userMovies.find(generation => generation._id.toString() === generationId);
+    } catch (err) {
+        logger.error(`Failed to get single generation from database: ${err.message}`);
+        throw err;
     }
 }

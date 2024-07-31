@@ -1,20 +1,19 @@
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import endpoints from './endpoints.config';
 import { logger } from './helpers/logger';
-import apiMovieRoutes from './routes/api/moviesAPI';
-import apiUserRoutes from './routes/api/usersAPI';
+import apiMovieRoutes from './routes/moviesAPI';
+import apiUserRoutes from './routes/usersAPI';
 
 const app = express();
 
 // Middleware setup
 app.use(cors());
 app.use(helmet());  // Additional configuration can be added here if needed
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // Start server
 app.listen(endpoints.PORT, () => {
