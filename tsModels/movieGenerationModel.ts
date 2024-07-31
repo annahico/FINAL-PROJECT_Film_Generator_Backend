@@ -1,27 +1,7 @@
-import { Document, Schema, model } from "mongoose";
+import * as mongoose from "mongoose";
 
-// Define the interfaces
-export interface MovieGenerationModel extends Document { 
-    userId: string;
-    userMovies: SingleGenerationObject[];
-}
 
-export interface SingleGenerationObject {
-    movieGenerationDate: string;                
-    movieSearchCriteria: MovieSearchCriteriaModel;
-    movies: MovieObject[];
-}
-
-export interface MovieObject {
-    movieId: number | undefined;
-    movieTitle: string | undefined;
-    movieDescription: string | undefined;
-    movieReleaseYear: string | undefined;
-    movieGenres: number[] | undefined;
-    moviePopularity: number | undefined;
-}
-
-export interface MovieSearchCriteriaModel {
+export interface movieSearchCriteriaModel {
     region?: string;
     sort_by?: 'popularity.asc' | 'popularity.desc' | 'release_date.asc' | 'release_date.desc' | 'revenue.asc' | 'revenue.desc' | 'primary_release_date.asc' | 'primary_release_date.desc' | 'original_title.asc' | 'original_title.desc' | 'vote_average.asc' | 'vote_average.desc' | 'vote_count.asc' | 'vote_count.desc';
     certification_country?: string;
@@ -60,9 +40,9 @@ export interface MovieResult {
     adult?: boolean;
     overview?: string;
     release_date?: string;
-    genre_ids?: number[];
+    genre_ids?: Array<number>;
     id?: number;
-    media_type: 'movie';
+    media_type?: 'movie';
     original_title?: string;
     original_language?: string;
     title?: string;
@@ -72,55 +52,37 @@ export interface MovieResult {
     video?: boolean;
     vote_average?: number;
 }
+export interface discoverMovies {
+    movieResults: MovieResult[],
+    movieSearchCriteria: movieSearchCriteriaModel
+}
+export interface movieObject {
+    movieId: number,
+    movieTitle: string | undefined,
+    movieDescription: string | undefined,
+    movieReleaseYear: string | undefined,
+    movieGenres: string | undefined,
+    moviePopularity: string | undefined,
+    movieImagePath: string | undefined
+}
 
-// Define the schema
-const MovieSchema = new Schema<MovieGenerationModel>({
-    userId: { type: String, required: true },
-    userMovies: [{
-        movieGenerationDate: { type: String, required: true },
-        movieSearchCriteria: {
-            region: String,
-            sort_by: { type: String, enum: ['popularity.asc', 'popularity.desc', 'release_date.asc', 'release_date.desc', 'revenue.asc', 'revenue.desc', 'primary_release_date.asc', 'primary_release_date.desc', 'original_title.asc', 'original_title.desc', 'vote_average.asc', 'vote_average.desc', 'vote_count.asc', 'vote_count.desc'] },
-            certification_country: String,
-            certification: String,
-            'certification.lte': String,
-            'certification.gte': String,
-            include_adult: Boolean,
-            include_video: Boolean,
-            page: Number,
-            primary_release_year: Number,
-            'primary_release_date.gte': String,
-            'primary_release_date.lte': String,
-            'release_date.gte': String,
-            'release_date.lte': String,
-            with_release_type: Number,
-            year: Number,
-            'vote_count.gte': Number,
-            'vote_count.lte': Number,
-            'vote_average.gte': Number,
-            'vote_average.lte': Number,
-            with_cast: String,
-            with_crew: String,
-            with_people: String,
-            with_companies: String,
-            with_genres: String,
-            without_genres: String,
-            with_keywords: String,
-            without_keywords: String,
-            'with_runtime.gte': Number,
-            'with_runtime.lte': Number,
-            with_original_language: String
-        },
-        movies: [{
-            movieId: Number,
-            movieTitle: String,
-            movieDescription: String,
-            movieReleaseYear: String,
-            movieGenres: [Number],
-            moviePopularity: Number,
-        }]
-    }]
-});
+export interface singleGenerationObject {
+    _id: String,
+    movieGenerationDate: string
+    movieSearchCriteria: movieSearchCriteriaModel,
+    movies: movieObject[],
+}
 
-// Create and export the model
-export default model<MovieGenerationModel>('Movie', MovieSchema);
+export interface movieGenerationModel extends mongoose.Document {
+    userId: string,
+    userMovies: singleGenerationObject[],
+    weeklyPlaylists: singleGenerationObject,
+    monthlyPlaylists: singleGenerationObject,
+    userPlaylists: databasePlaylistReturn
+}
+
+export interface databasePlaylistReturn {
+    weeklyPlaylists: singleGenerationObject,
+    monthlyPlaylists: singleGenerationObject,
+    allTimePlaylists: singleGenerationObject,
+}
