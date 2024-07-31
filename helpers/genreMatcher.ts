@@ -24,17 +24,29 @@ const movieGenreOBJ: movieobj = {
     '10752': 'War'
 };
 
-function genreMatcher(genres: string[]): string {
-    return genres
-        .map(genre => movieGenreOBJ[genre])
-        .filter(Boolean)  // Filtra los valores undefined o null
-        .join(', ');
+function genreMatcher(genres: string[]) {
+    let returnGenres = '';
+    for (const genre of genres) {
+        returnGenres += movieGenreOBJ[genre] ? (returnGenres.length === 0) ? `${movieGenreOBJ[genre]}` : `, ${movieGenreOBJ[genre]}` : null;
+    }
+    return returnGenres;
 }
 
-export function listMatcher(movieGenres: number[] | string[] | undefined): string {
+export async function listMatcher(movieGenres: number[] | string[] | undefined): Promise<string> {
     if (!movieGenres) {
         return '';
     }
-    const genres: string[] = movieGenres.map(String);
+    const genres: string[] = movieGenres.toString().split(",");
     return genreMatcher(genres);
+}
+
+export async function stringMatcher(movieGenres: String) {
+    if (!movieGenres) {
+        return 'All Genres'
+    };
+    console.log(movieGenres);
+    const genres: string[] = movieGenres.split(",");
+    console.log('passed');
+    return genreMatcher(genres);
+
 }
