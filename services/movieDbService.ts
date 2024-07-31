@@ -3,51 +3,51 @@ import { logger } from '../helpers/logger';
 import { movieGenerationModel, singleGenerationObject } from '../tsModels/movieGernerationModel';
 
 /**
- * @Desc Writes generated movies to the database
- * @param {singleGenerationObject} movieGeneration Generated movies to write to the database
- * @param {string} userId The ID of the user in question
+ * @Desc Writes user-generated movies to the database
+ * @param {singleGenerationObject} movieGeneration - Generated movies to write to the database
+ * @param {string} userId - The ID of the user in question
  */
 export async function writeToDatabase(movieGeneration: singleGenerationObject, userId: string): Promise<void> {
     try {
-        const user = await MovieSchema.findOne({ userId: userId });
+        const user = await MovieSchema.findOne({ userId });
 
         if (user) {
             await MovieSchema.updateOne(
-                { userId: userId },
+                { userId },
                 { $push: { userMovies: movieGeneration } }
             );
-            logger.info(`Movies have been added to database for user: ${userId}`);
+            logger.info(`Movie data successfully added to the database for user ID: ${userId}`);
         } else {
             const newUserMovies = new MovieSchema({
-                userId: userId,
-                userMovies: movieGeneration,
+                userId,
+                userMovies: [movieGeneration],
             });
 
             await newUserMovies.save();
-            logger.info(`User movies generated and saved for user: ${userId}`);
+            logger.info(`User movies generated and saved for user ID: ${userId}`);
         }
     } catch (err) {
-        logger.error(`Failed to write movies to the database for user ${userId}: ${err}`);
-        throw new Error('Database write operation failed');
+        logger.error(`Failed to write movies to database for user ID: ${userId} - Error: ${err.message}`);
+        throw new Error('Database operation failed');
     }
 }
 
 /**
- * @Desc Get movie curation for a user
- * @param {string} userId The ID of the user
- * @return {Promise<singleGenerationObject[] | string>} A promise resolving to the user's movies or an error message
+ * @Desc Retrieves movie curation for a user
+ * @param {string} userId - The ID of the user whose movies are to be retrieved
+ * @return {Promise<singleGenerationObject[] | string>} - A promise that resolves to the user's movie data or an error message
  */
 export async function getMoviesFromDatabase(userId: string): Promise<singleGenerationObject[] | string> {
     try {
-        const userMovies: movieGenerationModel | null = await MovieSchema.findOne({ userId: userId });
+        const userMovies: movieGenerationModel | null = await MovieSchema.findOne({ userId });
 
         if (userMovies) {
             return userMovies.userMovies;
         } else {
-            return `Unable to find user movies for ${userId}`;
+            return `Unable to find user movies for user ID: ${userId}`;
         }
     } catch (err) {
-        logger.error(`Failed to retrieve user movies for ${userId}: ${err}`);
-        throw new Error('Database retrieval operation failed');
+        logger.error(`Failed to retrieve user movies for user ID: ${userId} - Error: ${err.message}`);
+        throw new Error('Database operation failed');
     }
 }

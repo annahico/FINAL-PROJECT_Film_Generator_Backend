@@ -1,72 +1,90 @@
-import bcrypt from 'bcrypt';
-import dotenv from 'dotenv';
-import express from 'express';
+import bcrypt from 'bcryptjs';
+import config from 'config';
+import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import UserSchema from '../../models/User';
-
-dotenv.config(); // Asegúrate de cargar las variables de entorno
+import UserSchema from '../MongoModels/userModel';
+import { logger } from '../helpers/logger';
 
 const router = express.Router();
-const saltRounds = 10; // Número de rondas para encriptar contraseñas
 
-// Ruta de prueba para verificar que la API está funcionando
-router.get('/test', (req, res) => {
-    res.status(200).send('API is working');
-});
+// @route POST /login
+router.post('/login', async (req: Request, res: Response) => {
+    const { email, password } = req.body;
 
-// Ruta para registrar un nuevo usuario
-router.post('/register', async (req, res) => {
     try {
-        const { name, email, password } = req.body;
-
-        // Validación básica
-        if (!name || !email || !password) {
-            return res.status(400).send('Todos los campos son requeridos');
+        const user = await UserSchema.findOne({ email });
+        if (!user) {
+            return res.status(400).send('This email does not exist');
         }
 
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        // Validate hashed password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).send('Invalid Credentials');
+        }
+
+        const token = jwt.sign(
+            { id: user._id, email: user.email },
+            config.get<string>('jwtSecret'),
+            { expiresIn: 3600 * 6 } // Token expires in 6 hours
+        );
+
+        res.json({
+            token,
+            user: {
+                name: user.name,
+                email: user.email,
+            }
+        });
+    } catch (err) {
+        logger.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
+// @route POST /register
+router.post('/register', async (req: Request, res: Response) => {
+    const { name, email, password } = req.body;
+
+    // Basic validation
+    if (!name || !email || !password) {
+        return res.status(400).send("Please enter all fields");
+    }
+
+    try {
+        const existingUser = await UserSchema.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ msg: 'This user already exists' });
+        }
 
         const newUser = new UserSchema({
             name,
             email,
-            password: hashedPassword,
+            password
         });
 
-        const user = await newUser.save();
-        res.status(201).json(user); // Enviar datos JSON con estado 201 (Creado)
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        newUser.password = await bcrypt.hash(password, salt);
+
+        const savedUser = await newUser.save();
+
+        const token = jwt.sign(
+            { id: savedUser._id },
+            config.get<string>('jwtSecret'),
+            { expiresIn: 3600 * 6 }
+        );
+
+        res.json({
+            token,
+            user: {
+                name: savedUser.name,
+                email: savedUser.email
+            }
+        });
     } catch (err) {
-        console.error(err);
-        res.status(500).send('Error al registrar el usuario');
-    }
-});
-
-// Ruta para iniciar sesión
-router.post('/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        // Validación básica
-        if (!email || !password) {
-            return res.status(400).send('Email y contraseña son requeridos');
-        }
-
-        const user = await UserSchema.findOne({ email });
-        if (!user) {
-            return res.status(404).send('No se encontró el usuario');
-        }
-
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-            return res.status(401).send('Contraseña incorrecta');
-        }
-
-        // Opcional: generar un token JWT
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        res.status(200).json({ user, token });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Error al iniciar sesión');
+        logger.error(err);
+        res.status(500).send('Server error');
     }
 });
 

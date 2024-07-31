@@ -1,43 +1,53 @@
 import express from 'express';
-import { logger } from '../../helpers/logger';
-import { returnMovies } from '../../services/filterMovies';
-import { getMoviesFromDatabase, writeToDatabase } from '../../services/movieDbService';
+import { logger } from '../helpers/logger';
+import { movieAuth } from '../middleware/auth';
+import { returnMovies } from '../services/discoverMoviesService';
+import { getMoviesFromDatabase, writeToDatabase } from '../services/movieDbService';
 
-// eslint-disable-next-line new-cap
 const router = express.Router();
 
 /**
- * @Route /api/movies/testingMovies
- * @Desc Retrieve and filter movies, then write to database
+ * @Route POST /api/movies/movieGeneration
+ * @Desc Retrieve user input, filter movies, and optionally store them in the database
  */
-router.get('/testingMovies', async (req, res) => {
+router.post('/movieGeneration', movieAuth, async (req, res) => {
+    const id = req.body.user ? req.body.user.id : null;
+
     try {
-        // Obtener y formatear las películas
-        const formattedMovies = await returnMovies();
+        const formattedMovies = await returnMovies(req.body);
 
-        // Guardar las películas en la base de datos
-        await writeToDatabase(formattedMovies, 'kieran@123.ie');
+        if (id) {
+            try {
+                await writeToDatabase(formattedMovies, id);
+                logger.info('Movie successfully written to DB');
+            } catch (err) {
+                logger.error('Error writing movie to DB:', err);
+            }
+        }
 
-        // Enviar respuesta al cliente
         res.json(formattedMovies);
     } catch (err) {
-        logger.error(`Error in /api/movies/testingMovies: ${err.message}`);
-        res.status(500).send('An error occurred while processing your request.');
+        logger.error('Error generating movies:', err);
+        res.status(500).send('Server error');
     }
 });
 
 /**
- * @Route /api/movies/returnMovies
- * @Desc Retrieve movies from the database
+ * @Route GET /api/movies/returnMovies
+ * @Desc Retrieve movies from the database for a specific user
  */
 router.get('/returnMovies', async (req, res) => {
     try {
-        // Obtener películas de la base de datos
         const userMovieGenerations = await getMoviesFromDatabase('kieran@123.ie');
-        res.json(userMovieGenerations);
+
+        if (typeof userMovieGenerations === 'string') {
+            res.status(404).send(userMovieGenerations);
+        } else {
+            res.json(userMovieGenerations);
+        }
     } catch (err) {
-        logger.error(`Error in /api/movies/returnMovies: ${err.message}`);
-        res.status(500).send('An error occurred while retrieving movies from the database.');
+        logger.error('Error retrieving movies from DB:', err);
+        res.status(500).send('Server error');
     }
 });
 

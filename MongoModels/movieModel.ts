@@ -1,32 +1,35 @@
-import mongoose from 'mongoose';
-// import { movieGenerationModel } from '../tsModels/movieGenerationModel'; 
+import mongoose, { Document, Schema } from 'mongoose';
+import { movieGenerationModel } from '../tsModels/movieGernerationModel';
 
-const { Schema } = mongoose;
-
-const MovieSchema = new Schema({
+// Define the structure of movie schema
+const MovieSchema: Schema = new Schema({
     userId: {
         type: String,
-        required: true,
+        required: true
     },
     userMovies: [
         {
             movieGenerationDate: {
-                type: Date,
+                type: String,
                 required: true,
             },
             movieSearchCriteria: {
                 sort_by: {
                     type: String,
-                    required: true,
+                    required: false,  // Only need to specify required once
                 },
                 with_genres: {
-                    type: [String], // Assuming genres are strings, adjust if otherwise
-                    required: true,
+                    type: [String],  // Array of strings, fixed the type declaration
+                    required: false,
                 },
                 primary_release_year: {
                     type: String,
                     required: false,
                 },
+                with_keywords: {
+                    type: String,
+                    required: false,
+                }
             },
             movies: [
                 {
@@ -47,18 +50,22 @@ const MovieSchema = new Schema({
                         required: false,
                     },
                     movieGenres: {
-                        type: [String], // Assuming genres are strings, adjust if otherwise
+                        type: [String],  // Array of strings for genres
                         required: true,
                     },
                     moviePopularity: {
-                        type: Number,
+                        type: Number,  // Movie popularity should be a number
                         required: false,
                     },
-                },
-            ],
-        },
-    ],
+                    movieImagepath: {
+                        type: String,
+                        required: false,
+                    }
+                }
+            ]
+        }
+    ]
 });
 
-// Export the schema model correctly
-export default mongoose.model<movieGenerationModel>('movies', MovieSchema);
+// Export the model based on the movieGenerationModel interface
+export default mongoose.model<movieGenerationModel & Document>('Movie', MovieSchema);
