@@ -1,6 +1,6 @@
 import express from 'express';
 import { logger } from '../../helpers/logger';
-import UserSchema from '../../models/userModel';
+import UserSchema from '../../MongoModels/userModel';
 
 // eslint-disable-next-line new-cap
 const router = express.Router();

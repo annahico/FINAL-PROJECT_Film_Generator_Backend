@@ -1,46 +1,50 @@
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import express from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import endpoints from './endpoints.config';
 import { logger } from './helpers/logger';
-import apiMovieRoutes from './routes/movies';
-import apiUserRoutes from './routes/users';
+import apiMovieRoutes from './routes/api/moviesAPI';
+import apiUserRoutes from './routes/api/usersAPI';
 
 const app = express();
-dotenv.config();
 
 // Middleware setup
 app.use(cors());
-app.use(helmet());
+app.use(helmet());  // Additional configuration can be added here if needed
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// Use routes
+// Start server
+app.listen(endpoints.PORT, () => {
+    logger.info(`App is listening on port ${endpoints.PORT}`);
+});
+
+// MongoDB configuration and connection
+const db = endpoints.MONGO_URI;
+mongoose.connect(db)
+    .then(() => {
+        console.log('Mongoose successfully connected');
+        logger.info('Mongoose successfully connected');
+    })
+    .catch((err) => {
+        logger.error('Mongoose connection error:', err);
+    });
+
+// Routes
 app.use('/api/users', apiUserRoutes);
 app.use('/api/movies', apiMovieRoutes);
 
-// Root route
+// Root endpoint
 app.get('/', (req, res) => {
     res.send('Welcome to babel node');
 });
 
-// Start server
-const PORT = process.env.PORT || endpoints.PORT;
-app.listen(PORT, () => {
-    logger.info(`App is listening on port ${PORT}`);
+// Error handling middleware (for catching errors in routes)
+app.use((err, req, res, next) => {
+    logger.error('Server Error:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// MongoDB configuration
-const db = process.env.MONGO_URI || endpoints.MONGO_URI;
-
-// Connect to MongoDB
-mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
-        logger.info('Mongoose successfully connected');
-    })
-    .catch((err) => {
-        logger.error(err);
-    });
+export default app;
