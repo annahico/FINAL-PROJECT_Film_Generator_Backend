@@ -1,32 +1,50 @@
-import dotenv from 'dotenv';
-import { MovieDb } from 'moviedb-promise';
-import winston from 'winston';
+import { movieSearchCriteriaModel } from '../tsModels/movieGenerationModel';
+import { logger } from './logger';
 
-// Cargar variables de entorno
-dotenv.config();
-
-// Inicializar MovieDb con la clave API desde las variables de entorno
-const moviedb = new MovieDb(process.env.TMDB_API_KEY); // Usa la variable de entorno correcta
-
-// Configuración de Winston para logging
-const logger = winston.createLogger({
-    level: 'error',
-    format: winston.format.simple(),
-    transports: [
-        new winston.transports.Console()
-    ],
-});
-
-export const movies = async () => {
+export async function revisedQuery({ with_genres, with_keywords, sort_by, primary_release_year }: movieSearchCriteriaModel) {
     try {
-        // Obtén la lista de películas con los géneros especificados
-        const movieData = await moviedb.discoverMovie({
-            with_genres: '28,53', // Acción y Thriller
-        });
-        return movieData;
+        if (primary_release_year) {
+            return {
+                with_genres,
+                with_keywords,
+                sort_by
+            };
+        }
+        if (with_keywords) {
+            const keywordsList = with_keywords.split(",");
+            keywordsList.splice(-1, 1);
+            return {
+                with_genres,
+                sort_by,
+                with_keywords: keywordsList.toString()
+            };
+        }
+        if (sort_by) {
+            return {
+                with_genres
+            };
+        }
+        if (with_genres) {
+            const genreList = with_genres.split(",");
+            genreList.splice(-1, 1);
+
+            return {
+                with_genres: genreList.toString()
+            };
+        }
+        return {};
     } catch (err) {
-        // Maneja y registra el error
-        logger.error('Error al obtener películas:', err);
-        throw new Error('Error al obtener películas'); // Proporciona un mensaje de error más informativo
+        logger.error(`Failed to revise query: ${(err as Error).message}`);
+        throw err;
     }
-};
+}
+
+export async function formatQuery(movieSearchCriteria: movieSearchCriteriaModel) {
+    if (movieSearchCriteria?.primary_release_year) {
+        const yearRange = movieSearchCriteria.primary_release_year.toString().split("-");
+        movieSearchCriteria['release_date.gte'] = `${yearRange[0]}-01-01`;
+        movieSearchCriteria['release_date.lte'] = `${yearRange[1]}-01-01`;
+        delete movieSearchCriteria.primary_release_year;
+    }
+    return movieSearchCriteria;
+}

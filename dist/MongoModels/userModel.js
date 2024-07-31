@@ -14,16 +14,21 @@ var UserSchema = new Schema({
     email: {
         type: String,
         required: true,
+        unique: true
     },
     password: {
         type: String,
         required: true,
+    },
+    userName: {
+        type: String,
+        required: true,
+        unique: true
     },
     date: {
         type: Date,
         default: Date.now,
     },
 });
-// Export the Mongoose model
 exports.default = mongoose_1.default.model('users', UserSchema);
 //# sourceMappingURL=userModel.js.map

@@ -24,8 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importStar(require("mongoose"));
-// Define el esquema para la colección de "Trending"
-var TrendingSchema = new mongoose_1.Schema({
+var Trending = new mongoose_1.Schema({
     movieGenerationDate: {
         type: String,
         required: true,
@@ -45,8 +44,8 @@ var TrendingSchema = new mongoose_1.Schema({
         },
         with_keywords: {
             type: String,
-            required: false,
-        },
+            required: false
+        }
     },
     movies: [
         {
@@ -60,7 +59,7 @@ var TrendingSchema = new mongoose_1.Schema({
             },
             movieImagePath: {
                 type: String,
-                required: true,
+                required: true
             },
             movieDescription: {
                 type: String,
@@ -81,6 +80,5 @@ var TrendingSchema = new mongoose_1.Schema({
         },
     ],
 });
-// Exporta el modelo basado en el esquema
-exports.default = mongoose_1.default.model("Trending", TrendingSchema);
+exports.default = mongoose_1.default.model("trending", Trending);
 //# sourceMappingURL=trending.js.map

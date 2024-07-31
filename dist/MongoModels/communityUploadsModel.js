@@ -24,43 +24,50 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importStar(require("mongoose"));
-// Define the schema for a user movie
-var UserMovieSchema = new mongoose_1.Schema({
-    movieTitle: {
-        type: String,
-        required: true
-    },
-    movieDescription: {
-        type: String,
-        required: true
-    },
-    moviePlaybackPath: {
-        type: String,
-        required: true
-    },
-    movieStudio: {
-        type: String,
-        default: null
-    },
-    movieCredits: {
-        type: String,
-        default: null
-    }
-});
-// Define the schema for the community uploads
-var CommunityUploadsSchema = new mongoose_1.Schema({
+var CommunityUploads = new mongoose_1.Schema({
     user: {
-        userId: {
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            required: true
-        },
+        userId: String,
         userName: {
             type: String,
             required: true
         }
     },
-    userMovies: [UserMovieSchema]
+    movieDetails: {
+        movieTitle: {
+            type: String,
+            required: true
+        },
+        movieDescription: {
+            type: String,
+            required: true
+        },
+        moviePlaybackPath: {
+            type: String,
+            required: true
+        },
+        movieReleaseYear: {
+            type: String,
+            required: true
+        },
+        movieImagePath: {
+            type: String,
+            required: false
+        },
+        movieGenres: {
+            type: String,
+            required: false
+        },
+        movieStudio: {
+            type: String,
+            required: false,
+            default: null
+        },
+        movieCredits: {
+            type: String,
+            required: false,
+            default: null
+        }
+    }
 });
-// Export the model
-exports.default = mongoose_1.default.model('CommunityUploads', CommunityUploadsSchema);
+exports.default = mongoose_1.default.model('communityMovies', CommunityUploads);
 //# sourceMappingURL=communityUploadsModel.js.map
