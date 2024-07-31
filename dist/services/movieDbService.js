@@ -39,7 +39,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMoviesFromDatabase = exports.writeToDatabase = void 0;
+exports.writeToDatabase = writeToDatabase;
+exports.getMoviesFromDatabase = getMoviesFromDatabase;
 var movieModel_1 = __importDefault(require("../MongoModels/movieModel"));
 var logger_1 = require("../helpers/logger");
 /**
@@ -83,7 +84,6 @@ function writeToDatabase(movieGeneration, userId) {
         });
     });
 }
-exports.writeToDatabase = writeToDatabase;
 /**
  * @Desc Retrieves movie curation for a user
  * @param {string} userId - The ID of the user whose movies are to be retrieved
@@ -115,5 +115,4 @@ function getMoviesFromDatabase(userId) {
         });
     });
 }
-exports.getMoviesFromDatabase = getMoviesFromDatabase;
 //# sourceMappingURL=movieDbService.js.map

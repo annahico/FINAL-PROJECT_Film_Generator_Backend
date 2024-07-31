@@ -1,9 +1,12 @@
-import mongoose from 'mongoose';
-const Schema = mongoose.Schema;
-
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+var mongoose_1 = __importDefault(require("mongoose"));
+var Schema = mongoose_1.default.Schema;
 // Create Schema
-const DiscusionScehma = new Schema({
-
+var DiscusionScehma = new Schema({
     movieId: {
         type: Number,
         required: true,
@@ -32,7 +35,6 @@ const DiscusionScehma = new Schema({
         type: String,
         required: false,
     },
-
-
 });
-export default mongoose.model('discussions', DiscusionScehma);
+exports.default = mongoose_1.default.model('discussions', DiscusionScehma);
+//# sourceMappingURL=discussionModel.js.map

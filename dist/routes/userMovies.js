@@ -35,63 +35,48 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.listMatcher = listMatcher;
-exports.stringMatcher = stringMatcher;
-var movieGenreOBJ = {
-    '37': 'Western',
-    '28': 'Action',
-    '12': 'Adventure',
-    '16': 'Animation',
-    '35': 'Comedy',
-    '80': 'Crime',
-    '99': 'Documentary',
-    '18': 'Drama',
-    '10751': 'Family',
-    '14': 'Fantasy',
-    '36': 'History',
-    '27': 'Horror',
-    '10402': 'Music',
-    '9648': 'Mystery',
-    '10749': 'Romance',
-    '878': 'Sci-Fi',
-    '10770': 'TV Movie',
-    '53': 'Thriller',
-    '10752': 'War'
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-function genreMatcher(genres) {
-    var returnGenres = '';
-    for (var _i = 0, genres_1 = genres; _i < genres_1.length; _i++) {
-        var genre = genres_1[_i];
-        returnGenres += movieGenreOBJ[genre] ? (returnGenres.length === 0) ? "".concat(movieGenreOBJ[genre]) : ", ".concat(movieGenreOBJ[genre]) : null;
-    }
-    return returnGenres;
-}
-function listMatcher(movieGenres) {
-    return __awaiter(this, void 0, void 0, function () {
-        var genres;
-        return __generator(this, function (_a) {
-            if (!movieGenres) {
-                return [2 /*return*/, ''];
-            }
-            genres = movieGenres.toString().split(",");
-            return [2 /*return*/, genreMatcher(genres)];
-        });
+Object.defineProperty(exports, "__esModule", { value: true });
+var express_1 = __importDefault(require("express"));
+var logger_1 = require("../helpers/logger");
+var auth_1 = require("../middleware/auth");
+var discussionDbService_1 = require("../services/discussionDbService");
+var router = express_1.default.Router();
+/**
+ * @Route /api/discussions/create
+ * @Desc Create a new discussion
+ * @Access Private (Requires authentication)
+ */
+router.post('/create', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, movieId, movieTitle, movieDescription, discussionCreated, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body, movieId = _a.movieId, movieTitle = _a.movieTitle, movieDescription = _a.movieDescription;
+                if (!movieId || !movieTitle || !movieDescription) {
+                    return [2 /*return*/, res.status(400).json({ error: 'All fields are required' })];
+                }
+                return [4 /*yield*/, (0, discussionDbService_1.createDiscussion)({ movieId: movieId, movieTitle: movieTitle, movieDescription: movieDescription })];
+            case 1:
+                discussionCreated = _b.sent();
+                if (discussionCreated) {
+                    res.status(201).json({ message: 'Discussion created successfully' });
+                }
+                else {
+                    res.status(500).json({ error: 'Failed to create discussion' });
+                }
+                return [3 /*break*/, 3];
+            case 2:
+                err_1 = _b.sent();
+                logger_1.logger.error("Failed to create discussion: ".concat(err_1.message));
+                res.status(500).json({ error: 'Internal server error' });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
     });
-}
-function stringMatcher(movieGenres) {
-    return __awaiter(this, void 0, void 0, function () {
-        var genres;
-        return __generator(this, function (_a) {
-            if (!movieGenres) {
-                return [2 /*return*/, 'All Genres'];
-            }
-            ;
-            console.log(movieGenres);
-            genres = movieGenres.split(",");
-            console.log('passed');
-            return [2 /*return*/, genreMatcher(genres)];
-        });
-    });
-}
-//# sourceMappingURL=genreMatcher.js.map
+}); });
+exports.default = router;
+//# sourceMappingURL=userMovies.js.map

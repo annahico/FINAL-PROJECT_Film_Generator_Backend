@@ -35,63 +35,62 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.listMatcher = listMatcher;
-exports.stringMatcher = stringMatcher;
-var movieGenreOBJ = {
-    '37': 'Western',
-    '28': 'Action',
-    '12': 'Adventure',
-    '16': 'Animation',
-    '35': 'Comedy',
-    '80': 'Crime',
-    '99': 'Documentary',
-    '18': 'Drama',
-    '10751': 'Family',
-    '14': 'Fantasy',
-    '36': 'History',
-    '27': 'Horror',
-    '10402': 'Music',
-    '9648': 'Mystery',
-    '10749': 'Romance',
-    '878': 'Sci-Fi',
-    '10770': 'TV Movie',
-    '53': 'Thriller',
-    '10752': 'War'
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-function genreMatcher(genres) {
-    var returnGenres = '';
-    for (var _i = 0, genres_1 = genres; _i < genres_1.length; _i++) {
-        var genre = genres_1[_i];
-        returnGenres += movieGenreOBJ[genre] ? (returnGenres.length === 0) ? "".concat(movieGenreOBJ[genre]) : ", ".concat(movieGenreOBJ[genre]) : null;
-    }
-    return returnGenres;
-}
-function listMatcher(movieGenres) {
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.checkIfDiscussionExists = checkIfDiscussionExists;
+exports.createDiscussion = createDiscussion;
+exports.getAllDiscussions = getAllDiscussions;
+var logger_1 = require("../helpers/logger");
+var discussionModel_1 = __importDefault(require("../MongoModels/discussionModel"));
+function checkIfDiscussionExists(movieId) {
     return __awaiter(this, void 0, void 0, function () {
-        var genres;
         return __generator(this, function (_a) {
-            if (!movieGenres) {
-                return [2 /*return*/, ''];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, discussionModel_1.default.findOne({ movieId: movieId })
+                        .then(function (discussion) {
+                        if (discussion) {
+                            return true;
+                        }
+                        return false;
+                    }).catch(function (err) {
+                        logger_1.logger.error("Failed to find movie discussion: ".concat(err.message));
+                        throw err;
+                    })];
+                case 1: return [2 /*return*/, _a.sent()];
             }
-            genres = movieGenres.toString().split(",");
-            return [2 /*return*/, genreMatcher(genres)];
         });
     });
 }
-function stringMatcher(movieGenres) {
+function createDiscussion(movie) {
     return __awaiter(this, void 0, void 0, function () {
-        var genres;
         return __generator(this, function (_a) {
-            if (!movieGenres) {
-                return [2 /*return*/, 'All Genres'];
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, new discussionModel_1.default(movie).save()
+                        .then(function (discussion) { return true; })
+                        .catch(function (err) {
+                        logger_1.logger.error("Failed to create new discussion: ".concat(err.message));
+                        throw err;
+                    })];
+                case 1: return [2 /*return*/, _a.sent()];
             }
-            ;
-            console.log(movieGenres);
-            genres = movieGenres.split(",");
-            console.log('passed');
-            return [2 /*return*/, genreMatcher(genres)];
         });
     });
 }
-//# sourceMappingURL=genreMatcher.js.map
+function getAllDiscussions() {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, discussionModel_1.default.find({}).lean()
+                        .then(function (discussions) { return discussions; })
+                        .catch(function (err) {
+                        logger_1.logger.error("Failed to get all discussions: ".concat(err.message));
+                        throw err;
+                    })];
+                case 1: return [2 /*return*/, _a.sent()];
+            }
+        });
+    });
+}
+//# sourceMappingURL=discussionDbService.js.map

@@ -1,12 +1,9 @@
-import mongoose, { Document } from 'mongoose';
-import { UserModel } from '../tsModels/userModel';
+import mongoose from 'mongoose';
+import { userModel } from '../tsModels/userModel';
 const Schema = mongoose.Schema;
 
-// Define the TypeScript interface for the User model
-interface IUser extends Document, UserModel {}
-
 // Create Schema
-const UserSchema = new Schema<IUser>({
+const UserSchema = new Schema({
     name: {
         type: String,
         required: true,
@@ -14,16 +11,22 @@ const UserSchema = new Schema<IUser>({
     email: {
         type: String,
         required: true,
+        unique: true
     },
     password: {
         type: String,
         required: true,
     },
+    userName: {
+        type: String,
+        required: true,
+        unique: true
+    },
     date: {
         type: Date,
         default: Date.now,
     },
+
 });
 
-// Export the Mongoose model
-export default mongoose.model<IUser>('users', UserSchema);
+export default mongoose.model<userModel>('users', UserSchema);

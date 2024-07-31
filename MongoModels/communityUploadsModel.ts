@@ -1,58 +1,50 @@
-import mongoose, { Document, Schema } from 'mongoose';
-
-// Define the schema for a user movie
-const UserMovieSchema = new Schema({
-    movieTitle: {
-        type: String,
-        required: true
-    },
-    movieDescription: {
-        type: String,
-        required: true
-    },
-    moviePlaybackPath: {
-        type: String,
-        required: true
-    },
-    movieStudio: {
-        type: String,
-        default: null
-    },
-    movieCredits: {
-        type: String,
-        default: null
-    }
-});
-
-// Define the schema for the community uploads
-const CommunityUploadsSchema = new Schema({
+import mongoose, { Schema } from 'mongoose';
+import { CommmunityMoviesModel } from '../tsModels/communityMovieModels';
+const CommunityUploads = new Schema({
     user: {
-        userId: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true
-        },
+        userId: String,
         userName: {
             type: String,
             required: true
         }
     },
-    userMovies: [UserMovieSchema]
+    movieDetails: {
+        movieTitle: {
+            type: String,
+            required: true
+        },
+        movieDescription: {
+            type: String,
+            required: true
+        },
+        moviePlaybackPath: {
+            type: String,
+            required: true
+        },
+        movieReleaseYear: {
+            type: String,
+            required: true
+        },
+        movieImagePath: {
+            type: String,
+            required: false
+        },
+        movieGenres: {
+            type: String,
+            required: false
+        },
+        movieStudio: {
+            type: String,
+            required: false,
+            default: null
+        },
+        movieCredits: {
+            type: String,
+            required: false,
+            default: null
+        }
+    }
+
 });
 
-// Create an interface for the CommunityUploads model
-export interface ICommunityUploads extends Document {
-    user: {
-        userId: mongoose.Types.ObjectId;
-        userName: string;
-    };
-    userMovies: {
-        movieTitle: string;
-        movieDescription: string;
-        moviePlaybackPath: string;
-        movieStudio?: string | null;
-        movieCredits?: string | null;
-    }[];
-}
-
-// Export the model
-export default mongoose.model<ICommunityUploads>('CommunityUploads', CommunityUploadsSchema);
+export default mongoose.model<CommmunityMoviesModel>('communityMovies', CommunityUploads);
