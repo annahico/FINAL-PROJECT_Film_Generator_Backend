@@ -1,53 +1,96 @@
 import MovieSchema from '../MongoModels/movieModel';
+import TrendingSchema from '../MongoModels/trending';
 import { logger } from '../helpers/logger';
-import { movieGenerationModel, singleGenerationObject } from '../tsModels/movieGenerationModel';
+import { singleGenerationObject } from '../tsModels/movieGenerationModel';
 
-/**
- * @Desc Writes user-generated movies to the database
- * @param {singleGenerationObject} movieGeneration - Generated movies to write to the database
- * @param {string} userId - The ID of the user in question
- */
-export async function writeToDatabase(movieGeneration: singleGenerationObject, userId: string): Promise<void> {
+async function getUser(userId: string): Promise<MovieDocument | null> {
     try {
-        const user = await MovieSchema.findOne({ userId });
-
-        if (user) {
-            await MovieSchema.updateOne(
-                { userId },
-                { $push: { userMovies: movieGeneration } }
-            );
-            logger.info(`Movie data successfully added to the database for user ID: ${userId}`);
-        } else {
-            const newUserMovies = new MovieSchema({
-                userId,
-                userMovies: [movieGeneration],
-            });
-
-            await newUserMovies.save();
-            logger.info(`User movies generated and saved for user ID: ${userId}`);
-        }
+        const user = await MovieSchema.findOne({ userId }).lean();
+        return user as MovieDocument | null;
     } catch (err) {
-        logger.error(`Failed to write movies to database for user ID: ${userId} - Error: ${err.message}`);
-        throw new Error('Database operation failed');
+        logger.error(`Failed to get user: ${(err as Error).message}`);
+        throw err;
     }
 }
 
-/**
- * @Desc Retrieves movie curation for a user
- * @param {string} userId - The ID of the user whose movies are to be retrieved
- * @return {Promise<singleGenerationObject[] | string>} - A promise that resolves to the user's movie data or an error message
- */
-export async function getMoviesFromDatabase(userId: string): Promise<singleGenerationObject[] | string> {
+export async function writeToDatabase(userMovies: singleGenerationObject, userId: string): Promise<singleGenerationObject | undefined> {
     try {
-        const userMovies: movieGenerationModel | null = await MovieSchema.findOne({ userId });
+        const user = await getUser(userId);
+        if (user) {
+            const written = await MovieSchema.findOneAndUpdate(
+                { userId },
+                { $push: { userMovies } },
+                { new: true }
+            ).lean();
 
-        if (userMovies) {
-            return userMovies.userMovies;
+            const lastElem = written?.userMovies?.length || null;
+            if (lastElem) {
+                return written?.userMovies[lastElem - 1];
+            }
         } else {
-            return `Unable to find user movies for user ID: ${userId}`;
+            const newUserMovies = new MovieSchema({
+                userId,
+                userMovies
+            });
+
+            const saved = await newUserMovies.save();
+            return saved.userMovies[0];
         }
     } catch (err) {
-        logger.error(`Failed to retrieve user movies for user ID: ${userId} - Error: ${err.message}`);
-        throw new Error('Database operation failed');
+        logger.error(`Failed to write to database: ${(err as Error).message}`);
+        throw err;
+    }
+}
+
+export async function getMoviesFromDatabase(userId: string): Promise<singleGenerationObject[] | null> {
+    try {
+        const user = await getUser(userId);
+        return user ? user.userMovies : null;
+    } catch (err) {
+        logger.error(`Failed to get movies from database: ${(err as Error).message}`);
+        throw err;
+    }
+}
+
+export async function getPlaylistsFromDatabase(userId: string): Promise<any> { // Replace `any` with a specific type if available
+    try {
+        const trendingNow = await getTrendingNowPage();
+        const userPlaylists = await getUser(userId);
+        return {
+            ...userPlaylists,
+            trendingNow
+        };
+    } catch (err) {
+        logger.error(`Failed to get playlists from database: ${(err as Error).message}`);
+        throw err;
+    }
+}
+
+async function getTrendingNowPage(): Promise<TrendingDocument | null> {
+    try {
+        const res = await TrendingSchema.find({}).lean();
+        return res[0] || null;
+    } catch (err) {
+        logger.error(`Failed to get trending now page: ${(err as Error).message}`);
+        throw err;
+    }
+}
+
+export async function getAllMovies(): Promise<singleGenerationObject[]> {
+    try {
+        return await MovieSchema.find({}).lean();
+    } catch (err) {
+        logger.error(`Failed to get all movies: ${(err as Error).message}`);
+        throw err;
+    }
+}
+
+export async function getSingleGeneration(generationId: string): Promise<singleGenerationObject | null> {
+    try {
+        const generations = await MovieSchema.find({ userMovies: { $elemMatch: { _id: generationId } } }).lean();
+        return generations[0]?.userMovies.find((generation) => generation._id.toString() === generationId) || null;
+    } catch (err) {
+        logger.error(`Failed to get single generation from database: ${(err as Error).message}`);
+        throw err;
     }
 }
