@@ -40,103 +40,105 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
-var config_1 = __importDefault(require("config"));
+var dotenv_1 = __importDefault(require("dotenv"));
 var express_1 = __importDefault(require("express"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var userModel_1 = __importDefault(require("../MongoModels/userModel"));
 var logger_1 = require("../helpers/logger");
+dotenv_1.default.config();
 var router = express_1.default.Router();
-// @route POST /login
-router.post('/login', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, user, isMatch, token, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _a = req.body, email = _a.email, password = _a.password;
-                _b.label = 1;
-            case 1:
-                _b.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, userModel_1.default.findOne({ email: email })];
-            case 2:
-                user = _b.sent();
-                if (!user) {
-                    return [2 /*return*/, res.status(400).send('This email does not exist')];
+//https://www.youtube.com/watch?v=USaB1adUHM0&list=PLillGF-RfqbbiTGgA77tGO426V3hRF9iE&index=9&t=1795s&ab_channel=TraversyMedia 
+//this video helped me in setting up the /login and /register routes
+//@route
+router.post('/login', function (req, res) {
+    var _a = req.body, email = _a.email, password = _a.password;
+    var jwtSecret = process.env.jwtSecret ? process.env.jwtSecret : '';
+    return userModel_1.default.findOne({ email: email })
+        .then(function (user) {
+        if (!user) {
+            return res.status(403).send('This email is not registered');
+        }
+        //validate hashed password 
+        bcryptjs_1.default.compare(password, user.password)
+            .then(function (isMatch) {
+            if (!isMatch) {
+                return res.status(401).send('Invalid Credentails');
+            }
+            jsonwebtoken_1.default.sign({ id: user._id }, jwtSecret, { expiresIn: 3600 * 6 }, function (err, token) {
+                if (err) {
+                    throw err;
                 }
-                return [4 /*yield*/, bcryptjs_1.default.compare(password, user.password)];
-            case 3:
-                isMatch = _b.sent();
-                if (!isMatch) {
-                    return [2 /*return*/, res.status(401).send('Invalid Credentials')];
-                }
-                token = jsonwebtoken_1.default.sign({ id: user._id }, config_1.default.get('jwtSecret'), { expiresIn: '6h' } // Token expira en 6 horas
-                );
                 res.json({
                     token: token,
                     user: {
+                        id: user._id,
+                        userName: user.userName,
                         name: user.name,
                         email: user.email
                     }
                 });
-                return [3 /*break*/, 5];
-            case 4:
-                err_1 = _b.sent();
-                logger_1.logger.error("Login error: ".concat(err_1.message));
-                res.status(500).send('Server error');
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
-        }
+            });
+        });
+    }).catch(function (err) {
+        logger_1.logger.error("failed to log in user: ".concat(err.message));
+        throw err;
     });
-}); });
-// @route POST /register
-router.post('/register', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, name, email, password, existingUser, salt, hashedPassword, newUser, savedUser, token, err_2;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _a = req.body, name = _a.name, email = _a.email, password = _a.password;
-                if (!name || !email || !password) {
-                    return [2 /*return*/, res.status(400).send('Please enter all fields')];
+});
+router.post('/register', function (req, res) {
+    var _a = req.body, name = _a.name, email = _a.email, password = _a.password, userName = _a.userName;
+    if (!name || !email || !password || !userName) {
+        return res.status(400).send("Please enter all fields");
+    }
+    var jwtSecret = process.env.jwtSecret ? process.env.jwtSecret : '';
+    var user = userModel_1.default.findOne({ email: email })
+        .then(function (user) {
+        if (user) {
+            return res.status(409).send('This email is already registered');
+        }
+        var newUser = new userModel_1.default({
+            name: name,
+            email: email,
+            userName: userName,
+            password: password
+        });
+        bcryptjs_1.default.genSalt(10, function (err, salt) { return __awaiter(void 0, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                if (err) {
+                    throw err;
                 }
-                _b.label = 1;
-            case 1:
-                _b.trys.push([1, 6, , 7]);
-                return [4 /*yield*/, userModel_1.default.findOne({ email: email })];
-            case 2:
-                existingUser = _b.sent();
-                if (existingUser) {
-                    return [2 /*return*/, res.status(409).send('This email is already registered')];
-                }
-                return [4 /*yield*/, bcryptjs_1.default.genSalt(10)];
-            case 3:
-                salt = _b.sent();
-                return [4 /*yield*/, bcryptjs_1.default.hash(password, salt)];
-            case 4:
-                hashedPassword = _b.sent();
-                newUser = new userModel_1.default({
-                    name: name,
-                    email: email,
-                    password: hashedPassword
-                });
-                return [4 /*yield*/, newUser.save()];
-            case 5:
-                savedUser = _b.sent();
-                token = jsonwebtoken_1.default.sign({ id: savedUser._id }, config_1.default.get('jwtSecret'), { expiresIn: '6h' });
-                res.json({
-                    token: token,
-                    user: {
-                        name: savedUser.name,
-                        email: savedUser.email
+                bcryptjs_1.default.hash(password, salt, function (err, hash) {
+                    if (err) {
+                        throw err;
                     }
+                    newUser.password = hash;
+                    newUser.save()
+                        .then(function (user) {
+                        jsonwebtoken_1.default.sign({ id: user._id }, jwtSecret, { expiresIn: 3600 * 6 }, function (err, token) {
+                            if (err) {
+                                throw err;
+                            }
+                            res.json({
+                                token: token,
+                                user: {
+                                    id: user._id,
+                                    userName: user.userName,
+                                    name: user.name,
+                                    email: user.email
+                                }
+                            });
+                        });
+                    }).catch(function (err) {
+                        logger_1.logger.error("failed to save user".concat(err.message));
+                        throw err;
+                    });
                 });
-                return [3 /*break*/, 7];
-            case 6:
-                err_2 = _b.sent();
-                logger_1.logger.error("Registration error: ".concat(err_2.message));
-                res.status(500).send('Server error');
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
-        }
+                return [2 /*return*/];
+            });
+        }); });
+    }).catch(function (err) {
+        logger_1.logger.error("Failed to register user: ".concat(err.message));
+        return res.status(500).send('Sorry, that didnt go through :(');
     });
-}); });
+});
 exports.default = router;
 //# sourceMappingURL=auth.js.map

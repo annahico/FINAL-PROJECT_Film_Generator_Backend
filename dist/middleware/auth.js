@@ -13,64 +13,49 @@ dotenv_1.default.config();
 function auth(req, res, next) {
     try {
         logger_1.logger.info('Verifying user authentication');
-        var jwtSecret = process.env.jwtSecret || '';
+        var jwtSecret = process.env.jwtSecret ? process.env.jwtSecret : '';
         var token = req.headers['x-auth-token'];
         if (!token) {
             return res.status(401).send('No token, authorization denied');
         }
         var decoded = jsonwebtoken_1.default.verify(token, jwtSecret);
-        logger_1.logger.info("User token valid: ".concat(JSON.stringify(decoded)));
+        logger_1.logger.info("User token valid ".concat(decoded));
+        // Add user from payload
         req.body.user = decoded;
         next();
     }
     catch (err) {
-        if (err instanceof Error) {
-            logger_1.logger.error("Failed to decode user: ".concat(err.message));
-        }
-        else {
-            logger_1.logger.error('Failed to decode user: Unknown error');
-        }
-        res.status(401).send('Invalid token');
+        logger_1.logger.error("Failed to decode user: ".concat(err.message));
+        next();
     }
 }
 function generationAuth(req, res, next) {
     try {
         logger_1.logger.info('Verifying user authentication');
-        var jwtSecret = process.env.jwtSecret || '';
+        var jwtSecret = process.env.jwtSecret ? process.env.jwtSecret : '';
         var token = req.headers['x-auth-token'];
-        if (token) {
-            var decoded = jsonwebtoken_1.default.verify(token, jwtSecret);
-            logger_1.logger.info("User token valid: ".concat(JSON.stringify(decoded)));
-            req.body.user = decoded;
-        }
+        var decoded = jsonwebtoken_1.default.verify(token, jwtSecret);
+        logger_1.logger.info("User token valid ".concat(decoded));
+        // Add user from payload
+        req.body.user = decoded;
         next();
     }
     catch (err) {
-        if (err instanceof Error) {
-            logger_1.logger.error("Failed to decode user: ".concat(err.message));
-        }
-        else {
-            logger_1.logger.error('Failed to decode user: Unknown error');
-        }
+        logger_1.logger.error("Failed to decode user: ".concat(err.message));
         next();
     }
 }
 function getAuth(req, res, next) {
     try {
-        var jwtSecret = process.env.jwtSecret || '';
-        var token = req.headers['x-auth-token'];
+        var jwtSecret = process.env.jwtSecret ? process.env.jwtSecret : '';
+        var token = req.headers['x-auth-token'] ? req.headers['x-auth-token'] : null;
         if (token) {
             req.token = jsonwebtoken_1.default.verify(token, jwtSecret);
         }
         next();
     }
     catch (err) {
-        if (err instanceof Error) {
-            logger_1.logger.error("Failed to get auth: ".concat(err.message));
-        }
-        else {
-            logger_1.logger.error('Failed to get auth: Unknown error');
-        }
+        logger_1.logger.error("Failed to get auth ".concat(err.message));
         next();
     }
 }

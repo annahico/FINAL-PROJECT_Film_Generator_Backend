@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
-// Create Schema
+// Define el esquema para los comentarios
 const CommentSchema = new Schema({
     movieId: {
         type: String,
@@ -36,15 +36,14 @@ const CommentSchema = new Schema({
         default: false
     },
     commentUpVotes: {
-        type: Array,
+        type: [mongoose.Schema.Types.ObjectId], // Cambiado a un array de ObjectId
         default: []
     },
     commentDownVotes: {
-        type: Array,
+        type: [mongoose.Schema.Types.ObjectId], // Cambiado a un array de ObjectId
         default: []
     }
-
 });
-export default mongoose.model('comments', CommentSchema);
 
-
+// Exporta el modelo basado en el esquema
+export default mongoose.model('Comment', CommentSchema);

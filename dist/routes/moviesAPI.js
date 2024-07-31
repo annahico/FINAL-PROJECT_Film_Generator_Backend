@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -51,40 +62,64 @@ var router = express_1.default.Router();
  * @Route /api/movies/movieGeneration
  * @Desc Retrieve user input and filter movies
  */
-router.post('/movieGeneration', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, formattedMovies, err_1, isRevised, returnObj, err_2;
+router.post('/movieGeneration', auth_1.generationAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var id, formattedMovies, isRevised, dbFormattedMovies, err_1, isRevised, _a, _b, _c;
+    var _d;
+    return __generator(this, function (_e) {
+        switch (_e.label) {
+            case 0:
+                id = req.body.user ? req.body.user.id : null;
+                _e.label = 1;
+            case 1:
+                _e.trys.push([1, 4, , 7]);
+                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)(req.body.MovieGenerationModel)];
+            case 2:
+                formattedMovies = _e.sent();
+                isRevised = req.body.MovieGenerationModel !== formattedMovies.movieSearchCriteria;
+                if (!id) {
+                    res.json(__assign(__assign({}, formattedMovies), { isRevised: isRevised }));
+                    return [2 /*return*/];
+                }
+                return [4 /*yield*/, (0, movieDbService_1.writeToDatabase)(formattedMovies, id)];
+            case 3:
+                dbFormattedMovies = _e.sent();
+                res.json(__assign(__assign({}, dbFormattedMovies), { isRevised: isRevised }));
+                logger_1.logger.info("Movie successfully written to DB");
+                return [3 /*break*/, 7];
+            case 4:
+                err_1 = _e.sent();
+                logger_1.logger.error("Failed to write movies to DB: ".concat(err_1.message));
+                _a = req.body.MovieGenerationModel;
+                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)(req.body.MovieGenerationModel)];
+            case 5:
+                isRevised = _a !== (_e.sent()).movieSearchCriteria;
+                _c = (_b = res).json;
+                _d = {};
+                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)(req.body.MovieGenerationModel)];
+            case 6:
+                _c.apply(_b, [(_d.formattedMovies = _e.sent(), _d.isRevised = isRevised, _d)]);
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/generations/single/:generationId', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var generation, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 6, , 7]);
-                id = req.body.user ? req.body.user.id : null;
-                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)(req.body.MovieGenerationModel)];
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, (0, movieDbService_1.getSingleGeneration)(req.params.generationId)];
             case 1:
-                formattedMovies = _a.sent();
-                if (!id) return [3 /*break*/, 5];
-                _a.label = 2;
+                generation = _a.sent();
+                res.json(generation);
+                return [3 /*break*/, 3];
             case 2:
-                _a.trys.push([2, 4, , 5]);
-                return [4 /*yield*/, (0, movieDbService_1.writeToDatabase)(formattedMovies, id)];
-            case 3:
-                _a.sent();
-                logger_1.logger.info("Movie successfully wrote to DB");
-                return [3 /*break*/, 5];
-            case 4:
-                err_1 = _a.sent();
-                logger_1.logger.error("Failed to write movies to DB: ".concat(err_1.message));
-                return [2 /*return*/, res.status(500).send('Failed to write movies to DB')];
-            case 5:
-                isRevised = req.body.MovieGenerationModel !== formattedMovies.movieSearchCriteria;
-                returnObj = { formattedMovies: formattedMovies, isRevised: isRevised };
-                res.send(JSON.stringify(returnObj));
-                return [3 /*break*/, 7];
-            case 6:
                 err_2 = _a.sent();
-                logger_1.logger.error("".concat(err_2, " error in API"));
-                res.status(404).send('Error getting movies');
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                logger_1.logger.error("Failed to get single generation: ".concat(err_2.message));
+                res.status(500).json({ message: 'Failed to get generation' });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
@@ -92,31 +127,34 @@ router.post('/movieGeneration', auth_1.movieAuth, function (req, res) { return _
  * @Route /api/movies/returnMovies
  * @Desc Retrieves all generations for a user
  */
-router.post('/returnMovies', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.get('/returnMovies', auth_1.getAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var id, userMovieGenerations, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                id = req.body.user ? req.body.user.id : null;
-                if (!id)
-                    return [2 /*return*/, res.status(401).send('Please log in to access previous curations')];
-                return [4 /*yield*/, (0, movieDbService_1.getMoviesFromDatabase)(id)];
+                id = req.token.id;
+                if (!id) {
+                    return [2 /*return*/, res.status(401).json({ message: "Please log in to access previous curations" })];
+                }
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, movieDbService_1.getMoviesFromDatabase)(id)];
+            case 2:
                 userMovieGenerations = _a.sent();
                 if (userMovieGenerations) {
-                    res.status(200).send(userMovieGenerations);
+                    res.status(200).json(userMovieGenerations);
                 }
                 else {
-                    res.status(404).send('Unable to find user movies');
+                    res.status(404).json({ message: 'Unable to find user movies' });
                 }
-                return [3 /*break*/, 3];
-            case 2:
+                return [3 /*break*/, 4];
+            case 3:
                 err_3 = _a.sent();
-                logger_1.logger.error(err_3);
-                res.status(404).send('Unable to find user movies');
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                logger_1.logger.error("Error: ".concat(err_3.message));
+                res.status(404).json({ message: 'Unable to find user movies' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
@@ -124,26 +162,77 @@ router.post('/returnMovies', auth_1.movieAuth, function (req, res) { return __aw
  * @Route /api/movies/getPlaylists
  * @Desc Retrieves all user playlists from database
  */
-router.post('/getPlaylists', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.get('/getPlaylists', auth_1.getAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var id, playlists, err_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                id = req.body.user ? req.body.user.id : null;
-                if (!id)
-                    return [2 /*return*/, res.status(401).send('Please log in to see your playlists')];
-                return [4 /*yield*/, (0, movieDbService_1.getPlaylistsFromDatabase)(id)];
+                id = req.token.id;
+                if (!id) {
+                    return [2 /*return*/, res.status(401).json({ message: "Please log in to see your playlists" })];
+                }
+                _a.label = 1;
             case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, movieDbService_1.getPlaylistsFromDatabase)(id)];
+            case 2:
                 playlists = _a.sent();
-                res.send(JSON.stringify(playlists));
+                res.json(playlists);
+                return [3 /*break*/, 4];
+            case 3:
+                err_4 = _a.sent();
+                logger_1.logger.error("Failed to get playlists: ".concat(err_4.message));
+                res.status(404).json({ message: 'Failed to get user playlists from database' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/getMovie/:movieId', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var movie, err_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, (0, commentService_1.getMovie)(req.params.movieId)];
+            case 1:
+                movie = _a.sent();
+                res.json(movie);
                 return [3 /*break*/, 3];
             case 2:
-                err_4 = _a.sent();
-                logger_1.logger.error("Failed to get playlists ".concat(err_4.message));
-                res.status(404).send('Failed to get user playlists from database');
+                err_5 = _a.sent();
+                logger_1.logger.error("Failed to get movie from DB: ".concat(err_5.message));
+                res.status(404).json({ message: 'Failed to get movie from database' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
+        }
+    });
+}); });
+router.post('/discussions/create', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var exists, movie, err_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 5, , 6]);
+                return [4 /*yield*/, (0, commentService_1.checkIfDiscussionExists)(req.body.movieId)];
+            case 1:
+                exists = _a.sent();
+                if (!!exists) return [3 /*break*/, 3];
+                return [4 /*yield*/, (0, commentService_1.createDiscussion)(req.body)];
+            case 2:
+                movie = _a.sent();
+                res.json(movie);
+                return [3 /*break*/, 4];
+            case 3:
+                res.status(400).json({ message: 'Discussion already exists' });
+                _a.label = 4;
+            case 4: return [3 /*break*/, 6];
+            case 5:
+                err_6 = _a.sent();
+                logger_1.logger.error("Failed to check or create discussion: ".concat(err_6.message));
+                res.status(500).json({ message: 'Failed to check or create discussion' });
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
         }
     });
 }); });
@@ -151,8 +240,8 @@ router.post('/getPlaylists', auth_1.movieAuth, function (req, res) { return __aw
  * @Route /api/movies/comments/addComments
  * @Desc Adds a comment to the database
  */
-router.post('/comments/addComments', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var commentAdded, err_5;
+router.post('/comments/addComments', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var commentAdded, err_7;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -160,12 +249,12 @@ router.post('/comments/addComments', auth_1.movieAuth, function (req, res) { ret
                 return [4 /*yield*/, (0, commentService_1.addComment)(req.body)];
             case 1:
                 commentAdded = _a.sent();
-                res.send(commentAdded);
+                res.json(commentAdded);
                 return [3 /*break*/, 3];
             case 2:
-                err_5 = _a.sent();
-                logger_1.logger.error("Failed to add comment: ".concat(err_5.message));
-                res.status(500).send('Sorry, but your comment could not be added right now, please try again later');
+                err_7 = _a.sent();
+                logger_1.logger.error("Failed to add comment: ".concat(err_7.message));
+                res.status(500).json({ message: 'Sorry, but your comment could not be added right now, please try again later' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -173,24 +262,23 @@ router.post('/comments/addComments', auth_1.movieAuth, function (req, res) { ret
 }); });
 /**
  * @Route /api/movies/comments/getComments
- * @param postId: ID of post to query in DB
- * @Desc Retrieves comments for a specific post
+ * @Desc Retrieves comments for a post
  */
-router.get('/comments/getComments/:postId', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var comments, err_6;
+router.post('/comments/getComments', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var comments, err_8;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, (0, commentService_1.getCommentsForPost)(req.params.postId)];
+                return [4 /*yield*/, (0, commentService_1.getCommentsForPost)(req.body)];
             case 1:
                 comments = _a.sent();
-                res.send(comments);
+                res.json(comments);
                 return [3 /*break*/, 3];
             case 2:
-                err_6 = _a.sent();
-                logger_1.logger.error("Failed to get comments: ".concat(err_6.message));
-                res.status(500).send('Failed to get comments for this post');
+                err_8 = _a.sent();
+                logger_1.logger.error("Failed to get comments: ".concat(err_8.message));
+                res.status(500).json({ message: 'Failed to get comments for this post' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -198,101 +286,279 @@ router.get('/comments/getComments/:postId', function (req, res) { return __await
 }); });
 /**
  * @Route /api/movies/comments/update
- * @Desc Updates a comment in the database
+ * @Desc Updates a single comment
  */
-router.post('/comments/update', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, commentText, commentId, err_7;
+router.post('/comments/update', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, commentText, commentId, updatedComment, err_9;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 2, , 3]);
                 _a = req.body, commentText = _a.commentText, commentId = _a.commentId;
-                return [4 /*yield*/, (0, commentService_1.updateSingleComment)({ id: commentId, commentText: commentText })];
+                _b.label = 1;
             case 1:
-                _b.sent();
-                res.send('Comment updated successfully');
-                return [3 /*break*/, 3];
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, commentService_1.updateSingleComment)(commentId, commentText)];
             case 2:
-                err_7 = _b.sent();
-                logger_1.logger.error("Failed to update comment: ".concat(err_7.message));
-                res.status(500).send('Failed to update comment');
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                updatedComment = _b.sent();
+                res.json(updatedComment);
+                return [3 /*break*/, 4];
+            case 3:
+                err_9 = _b.sent();
+                logger_1.logger.error("Failed to update comment: ".concat(err_9.message));
+                res.status(500).json({ message: 'Failed to update comment' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 /**
- * @Route /api/movies/comments/delete/:commentId
- * @Desc Deletes a comment from the database
+ * @Route /api/movies/comments/delete/commentId
+ * @Desc Deletes a comment
  */
-router.get('/comments/delete/:commentId', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var result, err_8;
+router.get('/comments/delete/:commentId/:userId/:commentUserId', auth_1.getAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var result, err_10;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                if (req.params.userId !== req.params.commentUserId) {
+                    return [2 /*return*/, res.status(403).json({ message: 'You do not have the authorization to delete this comment' })];
+                }
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
                 return [4 /*yield*/, (0, commentService_1.deleteComment)(req.params.commentId)];
-            case 1:
+            case 2:
                 result = _a.sent();
-                res.send(result);
-                return [3 /*break*/, 3];
-            case 2:
-                err_8 = _a.sent();
-                logger_1.logger.error("Failed to delete comment: ".concat(err_8.message));
-                res.status(500).send('Failed to delete comment, try again later');
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); });
-/**
- * @Route /api/movies/comments/increase/score/:commentId/:commentScore
- * @Desc Increases the score of a comment
- */
-router.get('/comments/increase/score/:commentId/:commentScore', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var comment, err_9;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, (0, commentService_1.setUpvotes)(req.params.commentId, parseInt(req.params.commentScore, 10))];
-            case 1:
-                comment = _a.sent();
-                res.send(comment);
-                return [3 /*break*/, 3];
-            case 2:
-                err_9 = _a.sent();
-                logger_1.logger.error("Failed to increase comment score: ".concat(err_9.message));
-                res.status(500).send('Failed to increase score');
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
-        }
-    });
-}); });
-/**
- * @Route /api/movies/comments/decrease/score/:commentId/:commentScore
- * @Desc Decreases the score of a comment
- */
-router.get('/comments/decrease/score/:commentId/:commentScore', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var comment, err_10;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, (0, commentService_1.setDownvotes)(req.params.commentId, parseInt(req.params.commentScore, 10))];
-            case 1:
-                comment = _a.sent();
-                res.send(comment);
-                return [3 /*break*/, 3];
-            case 2:
+                res.json(result);
+                return [3 /*break*/, 4];
+            case 3:
                 err_10 = _a.sent();
-                logger_1.logger.error("Failed to decrease comment score: ".concat(err_10.message));
-                res.status(500).send('Failed to decrease score');
+                logger_1.logger.error("Failed to delete comment: ".concat(err_10.message));
+                res.status(500).json({ message: 'Failed to delete comment, try again later' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+/**
+ * @Route /api/movies/comments/score/commentID/commentScore
+ * @Desc Sets the score for a comment
+ */
+router.post('/comments/set/score', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, commentId, commentScore, value, user, changeFromDownVote, changeFromUpvote, comment, err_11;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, commentId = _a.commentId, commentScore = _a.commentScore, value = _a.value, user = _a.user, changeFromDownVote = _a.changeFromDownVote, changeFromUpvote = _a.changeFromUpvote;
+                if (!user) {
+                    return [2 /*return*/, res.status(401).json({ message: 'Please log in to vote on comments' })];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, commentService_1.setScore)(commentId, commentScore, value, user.id, changeFromUpvote, changeFromDownVote)];
+            case 2:
+                comment = _b.sent();
+                res.json(comment);
+                return [3 /*break*/, 4];
+            case 3:
+                err_11 = _b.sent();
+                logger_1.logger.error("Failed to increase comment score: ".concat(err_11.message));
+                res.status(500).json({ message: 'Failed to increase score' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/discussions/getDiscussions', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var discussions, err_12;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, (0, commentService_1.getAllDiscussions)()];
+            case 1:
+                discussions = _a.sent();
+                res.json(discussions);
+                return [3 /*break*/, 3];
+            case 2:
+                err_12 = _a.sent();
+                logger_1.logger.error("Failed to get all discussions: ".concat(err_12.message));
+                res.status(404).json({ message: 'Failed to get discussions' });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); });
-// Export router
+router.post('/indie/create', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, movieObj, user, currentUser, userMovie, err_13;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, movieObj = _a.movieObj, user = _a.user, currentUser = _a.currentUser;
+                if (!(user === null || user === void 0 ? void 0 : user.id)) {
+                    return [2 /*return*/, res.status(401).json({ message: "Please log in to create a post" })];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, commentService_1.createCommunityMovie)(movieObj, currentUser)];
+            case 2:
+                userMovie = _b.sent();
+                res.status(200).json(userMovie);
+                return [3 /*break*/, 4];
+            case 3:
+                err_13 = _b.sent();
+                logger_1.logger.error("Failed to add user movie: ".concat(err_13.message));
+                res.status(500).json({ message: 'Failed to add user movie' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/indie/get', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var movies, err_14;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, (0, commentService_1.getAllCommunityMovies)()];
+            case 1:
+                movies = _a.sent();
+                res.json(movies);
+                return [3 /*break*/, 3];
+            case 2:
+                err_14 = _a.sent();
+                logger_1.logger.error("Failed to get community movies: ".concat(err_14.message));
+                res.status(404).json({ message: 'Failed to get community movies' });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/indie/delete/:movieId/:userId/:movieUserId', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var deleted, err_15;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (req.params.userId !== req.params.movieUserId) {
+                    return [2 /*return*/, res.status(403).json({ message: 'You do not have authorization to delete this movie' })];
+                }
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, commentService_1.deleteCommunityMovie)(req.params.movieId)];
+            case 2:
+                deleted = _a.sent();
+                res.json("Movie successfully deleted: ".concat(deleted));
+                return [3 /*break*/, 4];
+            case 3:
+                err_15 = _a.sent();
+                logger_1.logger.error("Failed to delete user movie: ".concat(err_15.message));
+                res.status(404).json({ message: 'Failed to delete user movie' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/indie/get/:userId', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var movies, err_16;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, (0, commentService_1.getUserUploadsForSingleUser)(req.params.userId)];
+            case 1:
+                movies = _a.sent();
+                res.json(movies);
+                return [3 /*break*/, 3];
+            case 2:
+                err_16 = _a.sent();
+                logger_1.logger.error("Failed to get community movies for a single user: ".concat(err_16.message));
+                res.status(404).json({ message: 'Failed to get user movies for a single user' });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });
+router.post('/indie/delete', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, user, movieDetails, result, err_17;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, user = _a.user, movieDetails = _a.movieDetails;
+                if (!user || user.id !== movieDetails.userId) {
+                    return [2 /*return*/, res.status(403).json({ message: "You do not have authorization to delete this movie" })];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, commentService_1.deleteCommunityMovie)(movieDetails.movieId)];
+            case 2:
+                result = _b.sent();
+                res.json(result);
+                return [3 /*break*/, 4];
+            case 3:
+                err_17 = _b.sent();
+                logger_1.logger.error("Failed to delete community movie: ".concat(err_17.message));
+                res.status(404).json({ message: 'Failed to delete community movie' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.post('/indie/user/movie/update', auth_1.auth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, user, movieDetails, updatedMovie, err_18;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _a = req.body, user = _a.user, movieDetails = _a.movieDetails;
+                if (!user || movieDetails.user.userId !== user.id) {
+                    return [2 /*return*/, res.status(403).json({ message: 'You do not have authorization to perform this action' })];
+                }
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, commentService_1.updateUserMovie)(movieDetails)];
+            case 2:
+                updatedMovie = _b.sent();
+                res.json(updatedMovie);
+                return [3 /*break*/, 4];
+            case 3:
+                err_18 = _b.sent();
+                logger_1.logger.error("Failed to update community movie: ".concat(err_18.message));
+                res.status(404).json({ message: 'Failed to update community movie' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.get('/indie/user/single/movie/:movieId', auth_1.getAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var id, movie, err_19;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                id = req.token.id;
+                if (!id)
+                    return [2 /*return*/, res.status(403).json({ message: 'You do not have authorization to update this movie' })];
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                return [4 /*yield*/, (0, commentService_1.getSingleCommunityMovie)(req.params.movieId, id)];
+            case 2:
+                movie = _a.sent();
+                if (!movie)
+                    return [2 /*return*/, res.status(403).json({ message: 'You do not have authorization to update this movie' })];
+                res.json(movie);
+                return [3 /*break*/, 4];
+            case 3:
+                err_19 = _a.sent();
+                logger_1.logger.error("Failed to get user movie: ".concat(err_19.message));
+                res.status(404).json({ message: 'Unable to get user movie' });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
 exports.default = router;
 //# sourceMappingURL=moviesAPI.js.map

@@ -1,23 +1,34 @@
 import CommentSchema from '../MongoModels/commentModel';
 import { logger } from '../helpers/logger';
-import { checkIfDiscussionExists } from '../services/movieDbService';
+import { checkIfDiscussionExists } from '../services/discussionDbService';
 import { tsCommentSchema } from '../tsModels/commentModels';
 import { movieObject } from '../tsModels/movieGenerationModel';
 
+// Definir tipo para el resultado de updateSingleComment
+interface UpdateResult {
+    acknowledged: boolean;
+    modifiedCount: number;
+    upsertedId?: string;
+    upsertedCount?: number;
+    matchedCount: number;
+}
+
+// Método para actualizar un comentario existente
 export async function updateSingleComment(_id: string, commentText: string): Promise<boolean> {
     if (!_id || !commentText) {
         return false;
     }
 
     try {
-        await CommentSchema.updateOne({ _id }, { $set: { commentText } });
-        return true;
+        const result: UpdateResult = await CommentSchema.updateOne({ _id }, { $set: { commentText } }).exec();
+        return result.modifiedCount > 0;
     } catch (err) {
         logger.error(`Failed to update comment: ${(err as Error).message}`);
         throw err;
     }
 }
 
+// Método para agregar un nuevo comentario
 export async function addComment(commentData: any): Promise<tsCommentSchema> {
     try {
         const commentObj: tsCommentSchema = {
@@ -27,37 +38,29 @@ export async function addComment(commentData: any): Promise<tsCommentSchema> {
                 userName: commentData.userName
             },
             commentText: commentData.commentText,
-            commentDownVotes: 0,
-            commentUpVotes: 0,
+            commentDownVotes: [], // Inicializar como un array vacío de números
+            commentUpVotes: [],   // Inicializar como un array vacío de números
             isDeleted: false,
             depth: commentData.depth || 1,
             parentId: commentData.parentId || null
         };
 
-        // Crear una nueva instancia de comentario
-        const newComment = new CommentSchema(commentObj);
-        
-        // Guardar el comentario
-        const savedComment: CommentDocument = await newComment.save();
-        
-        // Transformar el documento guardado al tipo tsCommentSchema
-        return {
-            movieId: savedComment.movieId,
-            user: savedComment.user,
-            commentText: savedComment.commentText,
-            commentDownVotes: savedComment.commentDownVotes,
-            commentUpVotes: savedComment.commentUpVotes,
-            isDeleted: savedComment.isDeleted,
-            depth: savedComment.depth,
-            parentId: savedComment.parentId
-        };
+        const savedComment = await new CommentSchema(commentObj).save();
+        return savedComment.toObject() as tsCommentSchema;
     } catch (err) {
         logger.error(`Failed to add comment: ${(err as Error).message}`);
         throw err;
     }
 }
 
-export async function getCommentsForPost(movie: movieObject): Promise<{ count: number; comments: any }> {
+// Tipo para los comentarios obtenidos
+interface CommentResult {
+    count: number;
+    comments: Record<string, any>;
+}
+
+// Método para obtener los comentarios de una película
+export async function getCommentsForPost(movie: movieObject): Promise<CommentResult> {
     try {
         const isDiscussion = await checkIfDiscussionExists(movie.movieId);
         if (!isDiscussion) {
@@ -65,13 +68,13 @@ export async function getCommentsForPost(movie: movieObject): Promise<{ count: n
         }
 
         const commentsForMovie = await CommentSchema.find({ movieId: movie.movieId }).lean().exec();
-        
+
         const threads: Record<string, any> = {};
 
         const filterChildren = (comment: any, thread: any) => {
             for (const key in thread) {
                 const value = thread[key];
-                if (key === comment.parentId.toString()) {
+                if (key === comment.parentId?.toString()) {
                     value.children[comment._id] = comment;
                     return;
                 }
@@ -81,7 +84,7 @@ export async function getCommentsForPost(movie: movieObject): Promise<{ count: n
             }
         };
 
-        for (const comment of commentsForMovie) {
+        commentsForMovie.forEach((comment: any) => {
             if (comment.commentScore < -5) comment.commentText = "This comment is hidden due to low scoring";
             comment['children'] = {};
             if (!comment.parentId) {
@@ -89,7 +92,7 @@ export async function getCommentsForPost(movie: movieObject): Promise<{ count: n
             } else {
                 filterChildren(comment, threads);
             }
-        }
+        });
 
         return { count: commentsForMovie.length, comments: threads };
     } catch (err) {
@@ -98,34 +101,43 @@ export async function getCommentsForPost(movie: movieObject): Promise<{ count: n
     }
 }
 
+// Método para eliminar un comentario
 export async function deleteComment(_id: string): Promise<any> {
     try {
         return await CommentSchema.findOneAndUpdate(
             { _id },
             { $set: { commentText: 'This comment has been deleted', 'user.userId': null, 'user.userName': 'Unknown', isDeleted: true } },
             { new: true }
-        );
+        ).exec();
     } catch (err) {
         logger.error(`Failed to delete comment: ${(err as Error).message}`);
         throw err;
     }
 }
 
-export async function setScore(_id: string, commentScore: number, value: number, userId: string, changedFromUpVote: boolean, changedFromDownVote: boolean): Promise<any> {
+// Método para actualizar la puntuación de un comentario
+export async function setScore(
+    _id: string,
+    commentScore: number,
+    value: number,
+    userId: string,
+    changedFromUpVote: boolean,
+    changedFromDownVote: boolean
+): Promise<any> {
     try {
         if (changedFromDownVote) {
             return await CommentSchema.findByIdAndUpdate(
                 _id,
                 { $set: { commentScore }, $pull: { commentDownVotes: userId } },
                 { new: true }
-            );
+            ).exec();
         }
         if (changedFromUpVote) {
             return await CommentSchema.findByIdAndUpdate(
                 _id,
                 { $set: { commentScore }, $pull: { commentUpVotes: userId } },
                 { new: true }
-            );
+            ).exec();
         }
 
         const scoreType = (value === 1) ? 'commentUpVotes' : 'commentDownVotes';
@@ -133,7 +145,7 @@ export async function setScore(_id: string, commentScore: number, value: number,
             _id,
             { $set: { commentScore }, $push: { [scoreType]: userId } },
             { new: true }
-        );
+        ).exec();
     } catch (err) {
         logger.error(`Failed to update comment score: ${(err as Error).message}`);
         throw err;
