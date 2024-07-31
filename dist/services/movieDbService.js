@@ -39,9 +39,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMoviesFromDatabase = exports.writeToDatabase = void 0;
-var logger_1 = require("../helpers/logger");
+exports.writeToDatabase = writeToDatabase;
+exports.getMoviesFromDatabase = getMoviesFromDatabase;
 var movieModel_1 = __importDefault(require("../MongoModels/movieModel"));
+var logger_1 = require("../helpers/logger");
+/**
+ * @Desc Writes user-generated movies to the database
+ * @param {singleGenerationObject} movieGeneration - Generated movies to write to the database
+ * @param {string} userId - The ID of the user in question
+ */
 function writeToDatabase(movieGeneration, userId) {
     return __awaiter(this, void 0, void 0, function () {
         var user, newUserMovies, err_1;
@@ -56,7 +62,7 @@ function writeToDatabase(movieGeneration, userId) {
                     return [4 /*yield*/, movieModel_1.default.updateOne({ userId: userId }, { $push: { userMovies: movieGeneration } })];
                 case 2:
                     _a.sent();
-                    logger_1.logger.info("Movies have been added to database for user: ".concat(userId));
+                    logger_1.logger.info("Movie data successfully added to the database for user ID: ".concat(userId));
                     return [3 /*break*/, 5];
                 case 3:
                     newUserMovies = new movieModel_1.default({
@@ -66,19 +72,23 @@ function writeToDatabase(movieGeneration, userId) {
                     return [4 /*yield*/, newUserMovies.save()];
                 case 4:
                     _a.sent();
-                    logger_1.logger.info("User Movies generated for: ".concat(userId));
+                    logger_1.logger.info("User movies generated and saved for user ID: ".concat(userId));
                     _a.label = 5;
                 case 5: return [3 /*break*/, 7];
                 case 6:
                     err_1 = _a.sent();
-                    logger_1.logger.error("Failed to write movies to database: ".concat(err_1));
-                    throw new Error("Failed to write movies to database: ".concat(err_1));
+                    logger_1.logger.error("Failed to write movies to database for user ID: ".concat(userId, " - Error: ").concat(err_1.message));
+                    throw new Error('Database operation failed');
                 case 7: return [2 /*return*/];
             }
         });
     });
 }
-exports.writeToDatabase = writeToDatabase;
+/**
+ * @Desc Retrieves movie curation for a user
+ * @param {string} userId - The ID of the user whose movies are to be retrieved
+ * @return {Promise<singleGenerationObject[] | string>} - A promise that resolves to the user's movie data or an error message
+ */
 function getMoviesFromDatabase(userId) {
     return __awaiter(this, void 0, void 0, function () {
         var userMovies, err_2;
@@ -93,17 +103,16 @@ function getMoviesFromDatabase(userId) {
                         return [2 /*return*/, userMovies.userMovies];
                     }
                     else {
-                        return [2 /*return*/, "Unable to find user movies for ".concat(userId)];
+                        return [2 /*return*/, "Unable to find user movies for user ID: ".concat(userId)];
                     }
                     return [3 /*break*/, 3];
                 case 2:
                     err_2 = _a.sent();
-                    logger_1.logger.error("Failed to get movies from database: ".concat(err_2));
-                    throw new Error("Failed to get movies from database: ".concat(err_2));
+                    logger_1.logger.error("Failed to retrieve user movies for user ID: ".concat(userId, " - Error: ").concat(err_2.message));
+                    throw new Error('Database operation failed');
                 case 3: return [2 /*return*/];
             }
         });
     });
 }
-exports.getMoviesFromDatabase = getMoviesFromDatabase;
 //# sourceMappingURL=movieDbService.js.map

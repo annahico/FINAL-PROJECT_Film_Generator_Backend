@@ -39,87 +39,50 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var bcrypt_1 = __importDefault(require("bcrypt"));
-var dotenv_1 = __importDefault(require("dotenv"));
+var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var express_1 = __importDefault(require("express"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-var User_1 = __importDefault(require("../../models/User"));
-dotenv_1.default.config(); // Asegúrate de cargar las variables de entorno
+var userModel_1 = __importDefault(require("../MongoModels/userModel"));
+var logger_1 = require("../helpers/logger");
 var router = express_1.default.Router();
-var saltRounds = 10; // Número de rondas para encriptar contraseñas
-// Ruta de prueba para verificar que la API está funcionando
-router.get('/test', function (req, res) {
-    res.status(200).send('API is working');
-});
-// Ruta para registrar un nuevo usuario
-router.post('/register', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, name_1, email, password, hashedPassword, newUser, user, err_1;
-    return __generator(this, function (_b) {
-        switch (_b.label) {
-            case 0:
-                _b.trys.push([0, 3, , 4]);
-                _a = req.body, name_1 = _a.name, email = _a.email, password = _a.password;
-                // Validación básica
-                if (!name_1 || !email || !password) {
-                    return [2 /*return*/, res.status(400).send('Todos los campos son requeridos')];
-                }
-                return [4 /*yield*/, bcrypt_1.default.hash(password, saltRounds)];
-            case 1:
-                hashedPassword = _b.sent();
-                newUser = new User_1.default({
-                    name: name_1,
-                    email: email,
-                    password: hashedPassword,
-                });
-                return [4 /*yield*/, newUser.save()];
-            case 2:
-                user = _b.sent();
-                res.status(201).json(user); // Enviar datos JSON con estado 201 (Creado)
-                return [3 /*break*/, 4];
-            case 3:
-                err_1 = _b.sent();
-                console.error(err_1);
-                res.status(500).send('Error al registrar el usuario');
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); });
-// Ruta para iniciar sesión
+// @route POST /login
 router.post('/login', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, email, password, user, match, token, err_2;
+    var _a, email, password, user, isMatch, token, err_1;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                _b.trys.push([0, 3, , 4]);
                 _a = req.body, email = _a.email, password = _a.password;
-                // Validación básica
-                if (!email || !password) {
-                    return [2 /*return*/, res.status(400).send('Email y contraseña son requeridos')];
-                }
-                return [4 /*yield*/, User_1.default.findOne({ email: email })];
+                _b.label = 1;
             case 1:
+                _b.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, userModel_1.default.findOne({ email: email }).exec()];
+            case 2:
                 user = _b.sent();
                 if (!user) {
-                    return [2 /*return*/, res.status(404).send('No se encontró el usuario')];
+                    return [2 /*return*/, res.status(400).send('This email does not exist')];
                 }
-                return [4 /*yield*/, bcrypt_1.default.compare(password, user.password)];
-            case 2:
-                match = _b.sent();
-                if (!match) {
-                    return [2 /*return*/, res.status(401).send('Contraseña incorrecta')];
-                }
-                token = jsonwebtoken_1.default.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-                res.status(200).json({ user: user, token: token });
-                return [3 /*break*/, 4];
+                return [4 /*yield*/, bcryptjs_1.default.compare(password, user.password)];
             case 3:
-                err_2 = _b.sent();
-                console.error(err_2);
-                res.status(500).send('Error al iniciar sesión');
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                isMatch = _b.sent();
+                if (!isMatch) {
+                    return [2 /*return*/, res.status(401).send('Invalid Credentials')];
+                }
+                token = jsonwebtoken_1.default.sign({ id: user._id, email: user.email }, process.env.jwtSecret || '', { expiresIn: '6h' });
+                res.json({
+                    token: token,
+                    user: {
+                        name: user.name,
+                        email: user.email,
+                    }
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                err_1 = _b.sent();
+                logger_1.logger.error("Server error: ".concat(err_1.message));
+                res.status(500).send('Server error');
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); });
-exports.default = router;
 //# sourceMappingURL=api.js.map

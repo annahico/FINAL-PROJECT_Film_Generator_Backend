@@ -39,7 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.returnMovies = void 0;
+exports.returnMovies = returnMovies;
 /* eslint-disable */
 var dotenv_1 = __importDefault(require("dotenv"));
 var moviedb_promise_1 = require("moviedb-promise");
@@ -165,5 +165,4 @@ function returnMovies() {
         });
     });
 }
-exports.returnMovies = returnMovies;
 //# sourceMappingURL=filterMovies.js.map

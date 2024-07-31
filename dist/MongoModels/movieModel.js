@@ -4,32 +4,41 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = __importDefault(require("mongoose"));
-// import { movieGenerationModel } from '../tsModels/movieGenerationModel'; 
 var Schema = mongoose_1.default.Schema;
 var MovieSchema = new Schema({
-    userId: {
-        type: String,
-        required: true,
-    },
+    userId: String,
     userMovies: [
         {
             movieGenerationDate: {
-                type: Date,
+                default: new Date().toISOString(),
+                type: String,
                 required: true,
             },
             movieSearchCriteria: {
                 sort_by: {
                     type: String,
-                    required: true,
+                    required: false,
                 },
                 with_genres: {
-                    type: [String],
-                    required: true,
-                },
-                primary_release_year: {
                     type: String,
                     required: false,
                 },
+                'release_date.lte': {
+                    type: String,
+                    required: false
+                },
+                'release_date.gte': {
+                    type: String,
+                    required: false
+                },
+                with_keywords: {
+                    type: String,
+                    required: false
+                },
+                with_companies: {
+                    type: String,
+                    required: false
+                }
             },
             movies: [
                 {
@@ -39,29 +48,210 @@ var MovieSchema = new Schema({
                     },
                     movieTitle: {
                         type: String,
-                        required: true,
+                        required: false,
+                    },
+                    movieImagePath: {
+                        type: String,
+                        required: false
                     },
                     movieDescription: {
                         type: String,
-                        required: true,
+                        required: false,
                     },
                     movieReleaseYear: {
                         type: String,
                         required: false,
                     },
                     movieGenres: {
-                        type: [String],
-                        required: true,
+                        type: String,
+                        required: false,
                     },
                     moviePopularity: {
-                        type: Number,
+                        type: String,
                         required: false,
                     },
                 },
             ],
         },
     ],
+    userPlaylists: {
+        type: {
+            weeklyPlaylists: {
+                type: {
+                    movieGenerationDate: {
+                        type: String,
+                        required: true,
+                    },
+                    movieSearchCriteria: {
+                        sort_by: {
+                            type: String,
+                            required: false,
+                        },
+                        with_genres: {
+                            type: Array,
+                            required: false,
+                        },
+                        with_keywords: {
+                            type: String,
+                            required: false
+                        },
+                    },
+                    movies: [
+                        {
+                            movieId: {
+                                type: Number,
+                                required: true,
+                            },
+                            movieTitle: {
+                                type: String,
+                                required: true,
+                            },
+                            movieImagePath: {
+                                type: String,
+                                required: true
+                            },
+                            movieDescription: {
+                                type: String,
+                                required: true,
+                            },
+                            movieReleaseYear: {
+                                type: String,
+                                required: false,
+                            },
+                            movieGenres: {
+                                type: String,
+                                required: true,
+                            },
+                            moviePopularity: {
+                                type: String,
+                                required: false,
+                            },
+                        },
+                    ],
+                },
+                required: false
+            },
+            monthlyPlaylists: {
+                type: {
+                    movieGenerationDate: {
+                        type: String,
+                        required: true,
+                    },
+                    movieSearchCriteria: {
+                        sort_by: {
+                            type: String,
+                            required: false,
+                        },
+                        with_genres: {
+                            type: Array,
+                            required: false,
+                        },
+                        primary_release_year: {
+                            type: String,
+                            required: false,
+                        },
+                        with_keywords: {
+                            type: String,
+                            required: false
+                        }
+                    },
+                    movies: [
+                        {
+                            movieId: {
+                                type: Number,
+                                required: true,
+                            },
+                            movieTitle: {
+                                type: String,
+                                required: true,
+                            },
+                            movieImagePath: {
+                                type: String,
+                                required: true
+                            },
+                            movieDescription: {
+                                type: String,
+                                required: true,
+                            },
+                            movieReleaseYear: {
+                                type: String,
+                                required: false,
+                            },
+                            movieGenres: {
+                                type: String,
+                                required: true,
+                            },
+                            moviePopularity: {
+                                type: String,
+                                required: false,
+                            },
+                        },
+                    ],
+                },
+                required: false
+            },
+            allTimePlaylists: {
+                type: {
+                    movieGenerationDate: {
+                        type: String,
+                        required: true,
+                    },
+                    movieSearchCriteria: {
+                        sort_by: {
+                            type: String,
+                            required: false,
+                        },
+                        with_genres: {
+                            type: Array,
+                            required: false,
+                        },
+                        primary_release_year: {
+                            type: String,
+                            required: false,
+                        },
+                        with_keywords: {
+                            type: String,
+                            required: false
+                        }
+                    },
+                    movies: [
+                        {
+                            movieId: {
+                                type: Number,
+                                required: true,
+                            },
+                            movieTitle: {
+                                type: String,
+                                required: true,
+                            },
+                            movieImagePath: {
+                                type: String,
+                                required: true
+                            },
+                            movieDescription: {
+                                type: String,
+                                required: true,
+                            },
+                            movieReleaseYear: {
+                                type: String,
+                                required: false,
+                            },
+                            movieGenres: {
+                                type: String,
+                                required: true,
+                            },
+                            moviePopularity: {
+                                type: String,
+                                required: false,
+                            },
+                        },
+                    ],
+                },
+                required: false
+            },
+            required: false
+        },
+    },
 });
-// Export the schema model correctly
 exports.default = mongoose_1.default.model('movies', MovieSchema);
 //# sourceMappingURL=movieModel.js.map

@@ -1,9 +1,9 @@
 import mongoose, { Document } from 'mongoose';
-import { userModel } from '../tsModels/userModel';
+import { UserModel } from '../tsModels/userModel';
 const Schema = mongoose.Schema;
 
 // Define the TypeScript interface for the User model
-interface IUser extends Document, userModel {}
+interface IUser extends Document, UserModel {}
 
 // Create Schema
 const UserSchema = new Schema<IUser>({

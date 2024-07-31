@@ -40,64 +40,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
-var logger_1 = require("../../helpers/logger");
-var filterMovies_1 = require("../../services/filterMovies");
-var movieDbService_1 = require("../../services/movieDbService");
-// eslint-disable-next-line new-cap
+var auth_1 = require("../middleware/auth");
+var discoverMoviesService_1 = require("../services/discoverMoviesService");
 var router = express_1.default.Router();
-/**
- * @Route /api/movies/testingMovies
- * @Desc Retrieve and filter movies, then write to database
- */
-router.get('/testingMovies', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var formattedMovies, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 3, , 4]);
-                return [4 /*yield*/, (0, filterMovies_1.returnMovies)()];
-            case 1:
-                formattedMovies = _a.sent();
-                // Guardar las películas en la base de datos
-                return [4 /*yield*/, (0, movieDbService_1.writeToDatabase)(formattedMovies, 'kieran@123.ie')];
-            case 2:
-                // Guardar las películas en la base de datos
-                _a.sent();
-                // Enviar respuesta al cliente
-                res.json(formattedMovies);
-                return [3 /*break*/, 4];
-            case 3:
-                err_1 = _a.sent();
-                logger_1.logger.error("Error in /api/movies/testingMovies: ".concat(err_1.message));
-                res.status(500).send('An error occurred while processing your request.');
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); });
-/**
- * @Route /api/movies/returnMovies
- * @Desc Retrieve movies from the database
- */
-router.get('/returnMovies', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var userMovieGenerations, err_2;
+// @route GET /movies
+router.get('/movies', auth_1.movieAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var movies, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, (0, movieDbService_1.getMoviesFromDatabase)('kieran@123.ie')];
+                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)()];
             case 1:
-                userMovieGenerations = _a.sent();
-                res.json(userMovieGenerations);
+                movies = _a.sent();
+                res.json(movies);
                 return [3 /*break*/, 3];
             case 2:
-                err_2 = _a.sent();
-                logger_1.logger.error("Error in /api/movies/returnMovies: ".concat(err_2.message));
-                res.status(500).send('An error occurred while retrieving movies from the database.');
+                err_1 = _a.sent();
+                res.status(500).send('Server error');
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
     });
 }); });
-exports.default = router;
 //# sourceMappingURL=moviesAPI.js.map

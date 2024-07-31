@@ -3,14 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// Cargar el módulo dotenv para manejar las variables de entorno
 require("dotenv/config");
-// Importar el módulo moviedb-promise
 var moviedb_promise_1 = __importDefault(require("moviedb-promise"));
-// Crear una instancia de MovieDb con la clave API
-var apiKey = process.env.API_KEY; // Asegúrate de tener tu clave API en el archivo .env
+var apiKey = process.env.API_KEY || 'YOUR_API_KEY';
 var moviedb = new moviedb_promise_1.default(apiKey);
-// Función para obtener y mostrar las películas populares
 function getPopularMovies() {
     moviedb.moviePopular()
         .then(function (response) {
@@ -20,10 +16,14 @@ function getPopularMovies() {
         });
     })
         .catch(function (error) {
-        console.error('Error al obtener películas populares:', error);
+        if (error instanceof Error) {
+            console.error('Error al obtener películas populares:', error.message);
+        }
+        else {
+            console.error('Error desconocido al obtener películas populares.');
+        }
     });
 }
-// Función para buscar una película por título
 function searchMovieByTitle(title) {
     moviedb.movieSearch({ query: title })
         .then(function (response) {
@@ -38,10 +38,14 @@ function searchMovieByTitle(title) {
         }
     })
         .catch(function (error) {
-        console.error('Error al buscar película:', error);
+        if (error instanceof Error) {
+            console.error('Error al buscar película:', error.message);
+        }
+        else {
+            console.error('Error desconocido al buscar película.');
+        }
     });
 }
-// Función para obtener detalles de una película específica
 function getMovieDetails(movieId) {
     moviedb.movieInfo({ id: movieId })
         .then(function (response) {
@@ -52,13 +56,16 @@ function getMovieDetails(movieId) {
         console.log("Promedio de Votos: ".concat(response.vote_average));
     })
         .catch(function (error) {
-        console.error('Error al obtener detalles de la película:', error);
+        if (error instanceof Error) {
+            console.error('Error al obtener detalles de la película:', error.message);
+        }
+        else {
+            console.error('Error desconocido al obtener detalles de la película.');
+        }
     });
 }
 // Ejemplo de uso
 getPopularMovies(); // Muestra las películas populares
-// Busca una película por título
 searchMovieByTitle('Deadpool');
-// Obtén detalles de una película específica (reemplaza '123' con el ID real de una película)
 getMovieDetails(123);
 //# sourceMappingURL=index.js.map

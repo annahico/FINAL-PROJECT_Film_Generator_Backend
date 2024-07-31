@@ -3,21 +3,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var body_parser_1 = __importDefault(require("body-parser"));
 var cors_1 = __importDefault(require("cors"));
 var express_1 = __importDefault(require("express"));
 var helmet_1 = __importDefault(require("helmet"));
 var mongoose_1 = __importDefault(require("mongoose"));
 var endpoints_config_1 = __importDefault(require("./endpoints.config"));
 var logger_1 = require("./helpers/logger");
-var movies_1 = __importDefault(require("./routes/api/movies"));
-var users_1 = __importDefault(require("./routes/api/users"));
+var moviesAPI_1 = __importDefault(require("./routes/moviesAPI"));
+var usersAPI_1 = __importDefault(require("./routes/usersAPI"));
 var app = (0, express_1.default)();
 // Middleware setup
 app.use((0, cors_1.default)());
 app.use((0, helmet_1.default)()); // Additional configuration can be added here if needed
-app.use(body_parser_1.default.urlencoded({ extended: false }));
-app.use(body_parser_1.default.json());
+app.use(express_1.default.json());
+app.use(express_1.default.urlencoded({ extended: false }));
 // Start server
 app.listen(endpoints_config_1.default.PORT, function () {
     logger_1.logger.info("App is listening on port ".concat(endpoints_config_1.default.PORT));
@@ -33,8 +32,8 @@ mongoose_1.default.connect(db)
     logger_1.logger.error('Mongoose connection error:', err);
 });
 // Routes
-app.use('/api/users', users_1.default);
-app.use('/api/movies', movies_1.default);
+app.use('/api/users', usersAPI_1.default);
+app.use('/api/movies', moviesAPI_1.default);
 // Root endpoint
 app.get('/', function (req, res) {
     res.send('Welcome to babel node');

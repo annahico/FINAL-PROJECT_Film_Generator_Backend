@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { movieGenerationModel } from '../tsModels/movieGernerationModel';
+import { movieGenerationModel } from "../tsModels/movieGenerationModel";
 
 const Schema = mongoose.Schema;
 
