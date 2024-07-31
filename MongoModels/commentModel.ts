@@ -1,29 +1,47 @@
 import mongoose from 'mongoose';
-import { UserModel } from '../tsModels/userModel';
 
-const Schema = mongoose.Schema;
+// Interface para el comentario en la base de datos
+export interface Comment extends mongoose.Document {
+    movieId: string;
+    movieImageURI: string;
+    comments: userCommentObj[];
+}
 
-// Define el esquema usando el tipo `userModel`
-const UserSchema = new Schema<UserModel>({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-});
+// Interface para los comentarios de usuario
+export interface userComment {
+    commentText: string;
+    commentUpvotes: number;
+    commentDownvotes: number;
+    commentTimeStamp: string;
+    parent: null | string[];
+    commentReplies: userComment[];
+    commentId: string; // Añadido commentId
+}
 
-// Define el modelo y expórtalo
-const UserModel = mongoose.model<UserModel>('users', UserSchema);
+// Interface para el objeto de comentario del usuario
+export interface userCommentObj {
+    user: {
+        userID: string;
+        userName: string;
+    };
+    comments: userComment[];
+}
 
-export default UserModel;
+// Interface para el retorno estructurado de comentarios
+export interface structureCommentReturn {
+    userComments: Comment;
+    ids: string[];
+}
+
+// Interface para el esquema de comentario en Mongoose
+export interface tsCommentSchema {
+    movieId: string;
+    parentId?: mongoose.Schema.Types.ObjectId;
+    postedDate?: string;
+    user: {
+        userId: mongoose.Schema.Types.ObjectId;
+        userName: string;
+    };
+    depth?: number;
+    commentText?: string;
+}
