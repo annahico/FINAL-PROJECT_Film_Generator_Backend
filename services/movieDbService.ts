@@ -1,6 +1,6 @@
 import MovieSchema from '../MongoModels/movieModel';
 import { logger } from '../helpers/logger';
-import { movieGenerationModel, singleGenerationObject } from '../tsModels/movieGernerationModel';
+import { movieGenerationModel, singleGenerationObject } from '../tsModels/movieGenerationModel';
 
 /**
  * @Desc Writes user-generated movies to the database
