@@ -1,79 +1,119 @@
-import CommentSchema from '../MongoModels/commentModel';
 import { logger } from '../helpers/logger';
-import { structureCommentReturn, tsCommentSchema, userCommentObj } from '../tsModels/commentModels';
-
-// Actualiza un comentario existente
-export async function updateSingleComment({ id, commentText }: { id: string, commentText: string }): Promise<boolean> {
-    if (!id || !commentText) return false;
-
-    try {
-        const result = await CommentSchema.updateOne({ _id: id }, { $set: { commentText } });
-        return result.modifiedCount > 0;
-    } catch (err) {
-        logger.error(`Failed to update comment: ${err.message}`);
-        throw err;
+import { movieObject } from '../MongoModels/commentModel';
+import { checkIfDiscussionExists, createDiscussion } from '../services/discussionDbService';
+import CommentSchema, { tsCommentSchema } from '../tsModels/commentModels';
+export async function updateSingleComment(_id: string, commentText: string) {
+    if (!_id || !commentText) {
+        return false;
     }
+    CommentSchema.updateOne({ _id }, { $set: { commentText } })
+        .then((commentWrote) => true)
+        .catch((err) => {
+            logger.error(`Failed to update comment: ${err.message}`);
+            throw err;
+        });
 }
 
-// Añade un nuevo comentario
-export async function addComment(commentData: userCommentObj): Promise<tsCommentSchema> {
+export async function addComment(commentData: any) {
     try {
-        const commentObj: tsCommentSchema = {
+        let commentObj: tsCommentSchema = {
             movieId: commentData.movieId,
             user: {
-                userId: commentData.userId,
+                userId: commentData.id,
                 userName: commentData.userName
             },
             commentText: commentData.commentText,
-            depth: commentData.depth ?? 1,
-            parentId: commentData.parentId ?? null
+            commentDownVotes: 0,
+            commentUpVotes: 0,
+            isDeleted: false
         };
 
-        const comment = await new CommentSchema(commentObj).save();
-        return comment;
+        commentObj.depth = (commentData.depth) ? commentData.depth : 1;
+        commentObj.parentId = (commentData.parentId) ? commentData.parentId : null;
+
+        new CommentSchema(commentObj).save()
+            .then((comment) => comment)
+            .catch((err) => {
+                logger.error(`Failed to add comment: ${err.message}`);
+                throw err;
+            });
     } catch (err) {
         logger.error(`Failed to add comment: ${err.message}`);
         throw err;
     }
 }
 
-// Obtiene los comentarios para una película
-export async function getCommentsForPost(movieId: string): Promise<structureCommentReturn> {
-    try {
-        const commentsForMovie = await CommentSchema.find({ movieId }).lean().exec();
+export async function getCommentsForPost(movie: movieObject) {
+    const isDiscussion = await checkIfDiscussionExists(movie.movieId)
+        .then((bool) => bool)
+        .catch((err) => {
+            logger.error(`Failed to check if discussion exists: ${err.message}`);
+            throw err;
+        });
+    if (!isDiscussion) {
+        createDiscussion(movie)
+            .then((discussion) => discussion)
+            .catch((err) => {
+                logger.error(`Failed to create discussion: ${err.message}`);
+                throw err;
+            });
+    }
 
-        const nests: { [key: string]: any } = {};
+    return await CommentSchema.find({ movieId: movie.movieId }).lean().exec()
+        .then((commentsForMovie) => {
+            let rec = (comment: any, threads: any) => {
+                for (const thread in threads) {
+                    const value = threads[thread];
 
-        const rec = (comment: any, threads: any) => {
-            for (const thread in threads) {
-                const value = threads[thread];
-
-                if (thread.toString() === comment.parentId?.toString()) {
-                    value.children[comment._id] = comment;
-                    return;
-                }
-                if (value.children) {
-                    rec(comment, value.children);
+                    if (thread.toString() === comment.parentId.toString()) {
+                        value.children[comment._id] = comment;
+                        return;
+                    }
+                    if (value.children) {
+                        rec(comment, value.children);
+                    }
                 }
             }
-        };
-
-        commentsForMovie.forEach((comment: any) => {
-            comment.children = {};
-            const parentId = comment.parentId;
-            if (!parentId) {
-                nests[comment._id] = comment;
-            } else {
-                rec(comment, nests);
+            let threads: any = {};
+            let comment: any;
+            for (let q = 0; q < commentsForMovie.length; q++) {
+                comment = commentsForMovie[q];
+                comment['children'] = {};
+                let parentId = comment.parentId;
+                if (!parentId) {
+                    threads[comment._id] = comment;
+                    continue;
+                }
+                rec(comment, threads);
             }
+            return {
+                count: commentsForMovie.length,
+                comments: threads
+            }
+        })
+        .catch((err) => {
+            logger.error(`Failed to get comments for movie ${movie.movieId}: ${err.message}`);
+            throw err;
         });
 
-        return {
-            count: commentsForMovie.length,
-            comments: nests
-        };
-    } catch (err) {
-        logger.error(`Failed to get comments for movie ${movieId}: ${err.message}`);
-        throw err;
-    }
+}
+
+export async function deleteComment(_id: string) {
+    CommentSchema.findOneAndUpdate({ _id }, { $set: { commentText: 'This comment has been delete', 'user.userId': null, 'user.userName': 'Unknown', isDeleted: true } })
+        .then((result) => result)
+        .catch((err) => {
+            logger.error(`failed to delete user: ${err.message}`);
+            throw err;
+        });
+}
+
+export async function setScore(_id: string, commentScore: Number) {
+    CommentSchema.findOneAndUpdate({ _id }, { $set: { commentScore } })
+        .then((newScore) => {
+            return newScore;
+        })
+        .catch((err) => {
+            logger.error(`failed to increase score: ${err.message}`);
+            throw err;
+        });
 }
