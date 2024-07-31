@@ -78,15 +78,11 @@ export interface movieGenerationModel extends mongoose.Document {
     userMovies: singleGenerationObject[],
     weeklyPlaylists: singleGenerationObject,
     monthlyPlaylists: singleGenerationObject,
-    userPlaylists: {
-        weeklyPlaylists: singleGenerationObject,
-        monthlyPlaylists: singleGenerationObject,
-        allTimePlaylists: singleGenerationObject
-    }
+    userPlaylists: databasePlaylistReturn
 }
 
 export interface databasePlaylistReturn {
     weeklyPlaylists: singleGenerationObject,
     monthlyPlaylists: singleGenerationObject,
-    allTimePlaylists: singleGenerationObject
+    allTimePlaylists: singleGenerationObject,
 }
