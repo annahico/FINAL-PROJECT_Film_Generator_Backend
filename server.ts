@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Start server
-app.listen(endpoints.PORT, () => {
+app.listen(process.env.PORT, () => {
     logger.info(`App is listening on port ${endpoints.PORT}`);
 });
 

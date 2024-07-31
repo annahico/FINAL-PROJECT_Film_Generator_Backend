@@ -39,11 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.writeToDatabase = writeToDatabase;
-exports.getMoviesFromDatabase = getMoviesFromDatabase;
-exports.getPlaylistsFromDatabase = getPlaylistsFromDatabase;
-exports.getAllMovies = getAllMovies;
-exports.getSingleGeneration = getSingleGeneration;
+exports.getSingleGeneration = exports.getAllMovies = exports.getPlaylistsFromDatabase = exports.getMoviesFromDatabase = exports.writeToDatabase = void 0;
 var movieModel_1 = __importDefault(require("../MongoModels/movieModel"));
 var trending_1 = __importDefault(require("../MongoModels/trending"));
 var logger_1 = require("../helpers/logger");
@@ -112,6 +108,7 @@ function writeToDatabase(userMovies, userId) {
         });
     });
 }
+exports.writeToDatabase = writeToDatabase;
 /**
  * Get all movie curations for a specific user
  * @param {String} userId
@@ -136,6 +133,7 @@ function getMoviesFromDatabase(userId) {
         });
     });
 }
+exports.getMoviesFromDatabase = getMoviesFromDatabase;
 /**
  * Get playlists and trending movies for a specific user
  * @param {String} userId
@@ -166,6 +164,7 @@ function getPlaylistsFromDatabase(userId) {
         });
     });
 }
+exports.getPlaylistsFromDatabase = getPlaylistsFromDatabase;
 /**
  * Get the trending movies page
  */
@@ -210,6 +209,7 @@ function getAllMovies() {
         });
     });
 }
+exports.getAllMovies = getAllMovies;
 /**
  * Get a single generation by its ID
  * @param {String} generationId
@@ -234,4 +234,5 @@ function getSingleGeneration(generationId) {
         });
     });
 }
+exports.getSingleGeneration = getSingleGeneration;
 //# sourceMappingURL=discoverMoviesService.js.map

@@ -18,7 +18,7 @@ app.use((0, helmet_1.default)()); // Additional configuration can be added here 
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 // Start server
-app.listen(endpoints_config_1.default.PORT, function () {
+app.listen(process.env.PORT, function () {
     logger_1.logger.info("App is listening on port ".concat(endpoints_config_1.default.PORT));
 });
 // MongoDB configuration and connection

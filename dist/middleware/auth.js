@@ -3,9 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.auth = auth;
-exports.generationAuth = generationAuth;
-exports.getAuth = getAuth;
+exports.getAuth = exports.generationAuth = exports.auth = void 0;
 var dotenv_1 = __importDefault(require("dotenv"));
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var logger_1 = require("../helpers/logger");
@@ -33,6 +31,7 @@ function auth(req, res, next) {
         res.status(401).send('Invalid token');
     }
 }
+exports.auth = auth;
 function generationAuth(req, res, next) {
     try {
         logger_1.logger.info('Verifying user authentication');
@@ -55,6 +54,7 @@ function generationAuth(req, res, next) {
         next();
     }
 }
+exports.generationAuth = generationAuth;
 function getAuth(req, res, next) {
     try {
         var jwtSecret = process.env.jwtSecret || '';
@@ -74,4 +74,5 @@ function getAuth(req, res, next) {
         next();
     }
 }
+exports.getAuth = getAuth;
 //# sourceMappingURL=auth.js.map
