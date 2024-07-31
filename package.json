@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "test": "NODE_ENV= jest --coverage",
+    "test": "cross-env NODE_ENV=test jest --coverage",
     "build": "tsc",
     "start": "node dist/server.ts",
     "local": "PORT=8080 nodemon server.ts"
@@ -47,6 +47,7 @@
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^4.8.0",
     "@typescript-eslint/parser": "^4.8.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.13.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
