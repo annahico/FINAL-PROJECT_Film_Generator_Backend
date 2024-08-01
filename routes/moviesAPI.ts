@@ -17,7 +17,7 @@ import {
     setScore,
     updateSingleComment,
     updateUserMovie
-} from '../services/commentService';
+} from '../services/commentService'; // Mantener importaciones como están
 import { returnMovies } from '../services/discoverMoviesService';
 import {
     getMoviesFromDatabase,
@@ -151,7 +151,7 @@ router.post('/comments/addComments', auth, async (req: Request, res: Response) =
  */
 router.post('/comments/getComments', async (req: Request, res: Response) => {
     try {
-        const comments = await getCommentsForPost(req.body);
+        const comments = await getCommentsForPost(req.body.movieId); // Asegúrate de que req.body.movieId esté correcto
         res.json(comments);
     } catch (err) {
         logger.error(`Failed to get comments: ${(err as Error).message}`);

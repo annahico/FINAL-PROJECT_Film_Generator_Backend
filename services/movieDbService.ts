@@ -1,49 +1,83 @@
+import { Document } from 'mongoose';
 import { logger } from '../helpers/logger';
-import MovieDiscussion from '../MongoModels/discussionModel';
-import { movieObject } from '../tsModels/movieGenerationModel';
+import CommunityMovie from '../MongoModels/movieModel';
+import { MovieGenerationModel } from '../tsModels/movieGenerationModel'; // Importa el tipo
 
 // Tipo para los resultados de getAllDiscussions
-interface Discussion {
+interface Discussion extends Document {
     movieId: number;
     // Aquí deberías agregar más propiedades si existen en el modelo
 }
 
-export async function checkIfDiscussionExists(movieId: number): Promise<boolean> {
-    try {
-        const discussion = await MovieDiscussion.findOne({ movieId }).exec();
-        return !!discussion;
-    } catch (err) {
-        logger.error(`Failed to find movie discussion: ${(err as Error).message}`);
-        throw err;
-    }
+interface CommunityMovieDoc extends Document {
+    title: string;
+    description?: string;
+    createdBy: string;
+    // Agrega otras propiedades necesarias según el esquema
 }
 
-export async function createDiscussion(movie: movieObject): Promise<boolean> {
-    try {
-        await new MovieDiscussion(movie).save();
-        return true;
-    } catch (err) {
-        logger.error(`Failed to create new discussion: ${(err as Error).message}`);
-        throw err;
-    }
-}
+// Exportación de la interfaz
+export { MovieGenerationModel };
 
-export async function getAllDiscussions(): Promise<Discussion[]> {
-    try {
-        const discussions = await MovieDiscussion.find({}).lean().exec();
-        return discussions;
-    } catch (err) {
-        logger.error(`Failed to get all discussions: ${(err as Error).message}`);
-        throw err;
-    }
-}
+// Funciones del servicio de base de datos
 
-export async function getMovie(movieId: string): Promise<Discussion[]> {
+export const createCommunityMovieFromService = async (movieObj: MovieGenerationModel, currentUser: string): Promise<CommunityMovieDoc> => {
     try {
-        const movies = await MovieDiscussion.find({ movieId }).lean().exec();
-        return movies;
+        const newMovie = new CommunityMovie({ ...movieObj, createdBy: currentUser });
+        await newMovie.save();
+        return newMovie;
     } catch (err) {
-        logger.error(`Failed to get movie from database: ${(err as Error).message}`);
+        logger.error(`Failed to create community movie: ${(err as Error).message}`);
         throw err;
     }
-}
+};
+
+export const deleteCommunityMovieFromService = async (movieId: string): Promise<CommunityMovieDoc | null> => {
+    try {
+        const result = await CommunityMovie.findByIdAndDelete(movieId).exec();
+        return result; // `result` ya es un documento de tipo `CommunityMovieDoc`
+    } catch (err) {
+        logger.error(`Failed to delete community movie: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
+export const getAllCommunityMoviesFromService = async (): Promise<CommunityMovieDoc[]> => {
+    try {
+        const movies = await CommunityMovie.find({}).exec();
+        return movies; // `movies` ya es un array de documentos `CommunityMovieDoc`
+    } catch (err) {
+        logger.error(`Failed to get all community movies: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
+export const getSingleCommunityMovieFromService = async (movieId: string, userId: string): Promise<CommunityMovieDoc | null> => {
+    try {
+        const movie = await CommunityMovie.findOne({ _id: movieId, createdBy: userId }).exec();
+        return movie; // `movie` ya es de tipo `CommunityMovieDoc | null`
+    } catch (err) {
+        logger.error(`Failed to get single community movie: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
+export const getUserUploadsForSingleUserFromService = async (userId: string): Promise<CommunityMovieDoc[]> => {
+    try {
+        const movies = await CommunityMovie.find({ createdBy: userId }).exec();
+        return movies; // `movies` ya es un array de documentos `CommunityMovieDoc`
+    } catch (err) {
+        logger.error(`Failed to get user uploads for single user: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
+export const updateUserMovieFromService = async (movieDetails: MovieGenerationModel): Promise<CommunityMovieDoc | null> => {
+    try {
+        const updatedMovie = await CommunityMovie.findByIdAndUpdate(movieDetails._id, movieDetails, { new: true }).exec();
+        return updatedMovie; // `updatedMovie` ya es de tipo `CommunityMovieDoc | null`
+    } catch (err) {
+        logger.error(`Failed to update user movie: ${(err as Error).message}`);
+        throw err;
+    }
+};

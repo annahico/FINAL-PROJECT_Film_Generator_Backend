@@ -4,6 +4,18 @@ import { checkIfDiscussionExists } from '../services/discussionDbService';
 import { tsCommentSchema } from '../tsModels/commentModels';
 import { movieObject } from '../tsModels/movieGenerationModel';
 
+// Importar funciones del servicio de base de datos de películas
+import {
+    createCommunityMovie as createCommunityMovieFromService,
+    deleteCommunityMovie as deleteCommunityMovieFromService,
+    getAllCommunityMovies as getAllCommunityMoviesFromService,
+    getAllDiscussions as getAllDiscussionsFromService,
+    getMovie as getMovieFromService,
+    getSingleCommunityMovie as getSingleCommunityMovieFromService,
+    getUserUploadsForSingleUser as getUserUploadsForSingleUserFromService,
+    updateUserMovie as updateUserMovieFromService
+} from '../services/movieDbService';
+
 interface UpdateResult {
     acknowledged: boolean;
     modifiedCount: number;
@@ -50,12 +62,7 @@ export async function addComment(commentData: any): Promise<tsCommentSchema> {
     }
 }
 
-interface CommentResult {
-    count: number;
-    comments: Record<string, any>;
-}
-
-export async function getCommentsForPost(movie: movieObject): Promise<CommentResult> {
+export async function getCommentsForPost(movie: movieObject): Promise<{ count: number, comments: Record<string, any> }> {
     try {
         const isDiscussion = await checkIfDiscussionExists(movie.movieId);
         if (!isDiscussion) {
@@ -143,3 +150,14 @@ export async function setScore(
         throw err;
     }
 }
+
+// Exportar funciones del servicio de base de datos de películas
+
+export const createCommunityMovie = createCommunityMovieFromService;
+export const deleteCommunityMovie = deleteCommunityMovieFromService;
+export const getAllCommunityMovies = getAllCommunityMoviesFromService;
+export const getAllDiscussions = getAllDiscussionsFromService;
+export const getMovie = getMovieFromService;
+export const getSingleCommunityMovie = getSingleCommunityMovieFromService;
+export const getUserUploadsForSingleUser = getUserUploadsForSingleUserFromService;
+export const updateUserMovie = updateUserMovieFromService;
