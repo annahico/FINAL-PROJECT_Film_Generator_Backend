@@ -51,7 +51,7 @@ async function filterMovies(allMovies: any, movieSearchCriteria: movieSearchCrit
             newMovieObj.movieId = movie.id;
             newMovieObj.movieTitle = movie.title;
             newMovieObj.movieDescription = movie.overview;
-            newMovieObj.movieReleaseYear = movie.release_date ? movie.release_date.split('-')[0] : undefined;
+            newMovieObj.movieReleaseYear = movie.release_date ? movie.release_date.split('-')[0] : '';
             // TODO will have to make a dictionary with genres so they can be properly returned
             newMovieObj.movieGenres = movie.genre_ids;
             newMovieObj.moviePopularity = movie.popularity;
@@ -74,11 +74,12 @@ function returnMovieGenerationObject(): movieObject {
         movieId: 0,
         movieTitle: '',
         movieDescription: '',
-        movieReleaseYear: '',
+        movieReleaseYear: '', // Ensure this is always a string
         movieGenres: [],
         moviePopularity: 0,
     };
 }
+
 
 /**
  * @Desc returns formatted movies to the api
