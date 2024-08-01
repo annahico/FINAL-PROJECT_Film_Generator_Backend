@@ -4,7 +4,6 @@ import { checkIfDiscussionExists } from '../services/discussionDbService';
 import { tsCommentSchema } from '../tsModels/commentModels';
 import { movieObject } from '../tsModels/movieGenerationModel';
 
-// Definir tipo para el resultado de updateSingleComment
 interface UpdateResult {
     acknowledged: boolean;
     modifiedCount: number;
@@ -13,7 +12,6 @@ interface UpdateResult {
     matchedCount: number;
 }
 
-// Método para actualizar un comentario existente
 export async function updateSingleComment(_id: string, commentText: string): Promise<boolean> {
     if (!_id || !commentText) {
         return false;
@@ -28,7 +26,6 @@ export async function updateSingleComment(_id: string, commentText: string): Pro
     }
 }
 
-// Método para agregar un nuevo comentario
 export async function addComment(commentData: any): Promise<tsCommentSchema> {
     try {
         const commentObj: tsCommentSchema = {
@@ -38,8 +35,8 @@ export async function addComment(commentData: any): Promise<tsCommentSchema> {
                 userName: commentData.userName
             },
             commentText: commentData.commentText,
-            commentDownVotes: [], // Inicializar como un array vacío de números
-            commentUpVotes: [],   // Inicializar como un array vacío de números
+            commentDownVotes: [],
+            commentUpVotes: [],
             isDeleted: false,
             depth: commentData.depth || 1,
             parentId: commentData.parentId || null
@@ -53,13 +50,11 @@ export async function addComment(commentData: any): Promise<tsCommentSchema> {
     }
 }
 
-// Tipo para los comentarios obtenidos
 interface CommentResult {
     count: number;
     comments: Record<string, any>;
 }
 
-// Método para obtener los comentarios de una película
 export async function getCommentsForPost(movie: movieObject): Promise<CommentResult> {
     try {
         const isDiscussion = await checkIfDiscussionExists(movie.movieId);
@@ -68,7 +63,6 @@ export async function getCommentsForPost(movie: movieObject): Promise<CommentRes
         }
 
         const commentsForMovie = await CommentSchema.find({ movieId: movie.movieId }).lean().exec();
-
         const threads: Record<string, any> = {};
 
         const filterChildren = (comment: any, thread: any) => {
@@ -101,7 +95,6 @@ export async function getCommentsForPost(movie: movieObject): Promise<CommentRes
     }
 }
 
-// Método para eliminar un comentario
 export async function deleteComment(_id: string): Promise<any> {
     try {
         return await CommentSchema.findOneAndUpdate(
@@ -115,7 +108,6 @@ export async function deleteComment(_id: string): Promise<any> {
     }
 }
 
-// Método para actualizar la puntuación de un comentario
 export async function setScore(
     _id: string,
     commentScore: number,
