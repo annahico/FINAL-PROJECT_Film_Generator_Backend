@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import mongoose from 'mongoose';
 import endpoints from './endpoints.config';
@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
 });
 
 // Error handling middleware (for catching errors in routes)
-app.use((err, req, res, next) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     logger.error('Server Error:', err);
     res.status(500).json({ error: 'Internal Server Error' });
 });

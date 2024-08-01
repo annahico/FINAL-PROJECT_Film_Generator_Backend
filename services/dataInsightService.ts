@@ -1,16 +1,37 @@
 import { logger } from '../helpers/logger';
 
-export async function calculateData(startDate: string, endDate: string, propObj: any = null, propList: any, type: string) {
+// Definir los tipos de datos
+interface MovieGeneration {
+    movieSearchCriteria?: {
+        [key: string]: any;  
+        release_date?: {
+            gte?: string;
+        };
+    };
+    movieGenerationDate: string;
+}
+
+interface User {
+    userMovies: MovieGeneration[];
+}
+
+export async function calculateData(
+    startDate: string, 
+    endDate: string, 
+    propObj: { [key: string]: number } = {}, 
+    propList: User[], 
+    type: string
+): Promise<any> {
     try {
         const movies = propList
-            .map((user: any) => user.userMovies.filter((generation: any) =>
+            .map((user: User) => user.userMovies.filter((generation: MovieGeneration) =>
                 generation.movieSearchCriteria &&
                 generation.movieGenerationDate > startDate &&
                 generation.movieGenerationDate < endDate
             ))
-            .reduce((acc: any, value: any) => acc.concat(value), []);
+            .reduce((acc, value) => acc.concat(value), []);
 
-        movies.forEach((movieGen: any) => {
+        movies.forEach((movieGen: MovieGeneration) => {
             if (type === 'with_genres' || type === 'with_keywords') {
                 const propGenList: string[] = movieGen.movieSearchCriteria && movieGen.movieSearchCriteria[type]
                     ? movieGen.movieSearchCriteria[type].split(",")
@@ -25,16 +46,15 @@ export async function calculateData(startDate: string, endDate: string, propObj:
         });
 
         const data: number[] = [];
-const labels: string[] = [];
+        const labels: string[] = [];
 
-Object.entries(propObj).map(([key, value]: [string, number]) => {
-    data.push(value);
-    labels.push(key);
-});
-
+        Object.entries(propObj).forEach(([key, value]) => {
+            data.push(value);
+            labels.push(key);
+        });
 
         return {
-            labels: { labels },
+            labels: labels,
             datasets: [{
                 label: 'Number of Selections',
                 data,
@@ -51,14 +71,18 @@ Object.entries(propObj).map(([key, value]: [string, number]) => {
     }
 }
 
-export async function calculateDailyGenerations(startDate: string, endDate: string, moviesObj: any) {
+export async function calculateDailyGenerations(
+    startDate: string, 
+    endDate: string, 
+    moviesObj: User[]
+): Promise<any> {
     try {
         const movies = moviesObj
-            .map((user: any) => user.userMovies.filter((generation: any) =>
+            .map((user: User) => user.userMovies.filter((generation: MovieGeneration) =>
                 generation.movieGenerationDate > startDate &&
                 generation.movieGenerationDate < endDate
             ))
-            .reduce((acc: any, value: any) => acc.concat(value), []);
+            .reduce((acc, value) => acc.concat(value), []);
         
         const dates: string[] = [];
         const count: number[] = [];
@@ -68,7 +92,7 @@ export async function calculateDailyGenerations(startDate: string, endDate: stri
 
         while (currentStartDate < end) {
             let futureDate = new Date(currentStartDate + 86400000).toISOString();
-            const filteredMovies = movies.filter((generation: any) =>
+            const filteredMovies = movies.filter((generation: MovieGeneration) =>
                 generation.movieGenerationDate >= startDate && generation.movieGenerationDate <= futureDate
             );
             dates.push(futureDate);
@@ -77,7 +101,7 @@ export async function calculateDailyGenerations(startDate: string, endDate: stri
         }
 
         return {
-            labels: { labels: dates },
+            labels: dates,
             datasets: [{
                 label: 'Number of Selections',
                 data: count,
@@ -94,4 +118,25 @@ export async function calculateDailyGenerations(startDate: string, endDate: stri
     }
 }
 
-// Los otros métodos permanecen sin cambios...
+// Definir y exportar el chartController
+export async function chartController(
+    startDate: string, 
+    endDate: string, 
+    chartType: string
+): Promise<any> {
+    try {
+        let result;
+        const propObj: { [key: string]: number } = {}; // Inicia un objeto vacío para acumular datos
+        const propList: User[] = [];  
+
+        if (chartType === 'daily') {
+            result = await calculateDailyGenerations(startDate, endDate, propList);
+        } else {
+            result = await calculateData(startDate, endDate, propObj, propList, chartType);
+        }
+        return result;
+    } catch (err) {
+        logger.error(`Failed to get data for chart: ${(err as Error).message}`);
+        throw err;
+    }
+}
