@@ -39,30 +39,42 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.returnMovies = returnMovies;
 exports.writeToDatabase = writeToDatabase;
 exports.getMoviesFromDatabase = getMoviesFromDatabase;
 exports.getPlaylistsFromDatabase = getPlaylistsFromDatabase;
-exports.getAllMovies = getAllMovies;
 exports.getSingleGeneration = getSingleGeneration;
+var logger_1 = require("../helpers/logger");
 var movieModel_1 = __importDefault(require("../MongoModels/movieModel"));
 var trending_1 = __importDefault(require("../MongoModels/trending"));
-var logger_1 = require("../helpers/logger");
 /**
- * Check if user exists in the database
- * @param {String} userId
+ * Retrieve and format movies based on the provided model.
+ * @param {singleGenerationObject} movieGenerationModel - The model used to generate movie recommendations.
+ * @returns {Promise<any>} - The formatted movie results.
  */
-function getUser(userId) {
+function returnMovies(movieGenerationModel) {
     return __awaiter(this, void 0, void 0, function () {
-        var err_1;
+        var movies, formattedMovies, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, movieModel_1.default.findOne({ userId: userId }).lean()];
-                case 1: return [2 /*return*/, _a.sent()];
+                    return [4 /*yield*/, movieModel_1.default.find({}).lean()];
+                case 1:
+                    movies = _a.sent();
+                    formattedMovies = {
+                        movieSearchCriteria: movieGenerationModel, // Assuming this is a search criteria object
+                        movies: movies
+                    };
+                    return [2 /*return*/, formattedMovies];
                 case 2:
                     err_1 = _a.sent();
-                    logger_1.logger.error("Error in getting user: ".concat(err_1.message));
+                    if (err_1 instanceof Error) {
+                        logger_1.logger.error("Failed to retrieve movies: ".concat(err_1.message));
+                    }
+                    else {
+                        logger_1.logger.error('Failed to retrieve movies: Unknown error');
+                    }
                     throw err_1;
                 case 3: return [2 /*return*/];
             }
@@ -70,51 +82,43 @@ function getUser(userId) {
     });
 }
 /**
- * Write generated movies to the database for a specific user
- * @param {singleGenerationObject} userMovies - Generated movies to write to the database
- * @param {String} userId - The ID of the user in question
+ * Write formatted movies to the database.
+ * @param {singleGenerationObject} formattedMovies - The formatted movies to save.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<singleGenerationObject>} - The saved movies object.
  */
-function writeToDatabase(userMovies, userId) {
+function writeToDatabase(formattedMovies, userId) {
     return __awaiter(this, void 0, void 0, function () {
-        var user, updatedUser, lastElem, newuserMovies, res, err_2;
+        var user, err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    _a.trys.push([0, 6, , 7]);
-                    return [4 /*yield*/, getUser(userId)];
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, movieModel_1.default.findOneAndUpdate({ userId: userId }, { $push: { userMovies: formattedMovies } }, { new: true, lean: true })];
                 case 1:
                     user = _a.sent();
-                    if (!user) return [3 /*break*/, 3];
-                    return [4 /*yield*/, movieModel_1.default.findOneAndUpdate({ userId: userId }, { $push: { userMovies: userMovies } }, { new: true, lean: true })];
-                case 2:
-                    updatedUser = _a.sent();
-                    lastElem = (updatedUser === null || updatedUser === void 0 ? void 0 : updatedUser.userMovies.length) || null;
-                    if (lastElem) {
-                        return [2 /*return*/, updatedUser.userMovies[lastElem - 1]];
+                    if (!user) {
+                        throw new Error('User not found');
                     }
-                    return [3 /*break*/, 5];
-                case 3:
-                    newuserMovies = new movieModel_1.default({
-                        userId: userId,
-                        userMovies: userMovies
-                    });
-                    return [4 /*yield*/, newuserMovies.save()];
-                case 4:
-                    res = _a.sent();
-                    return [2 /*return*/, res.userMovies[0]];
-                case 5: return [3 /*break*/, 7];
-                case 6:
+                    return [2 /*return*/, user.userMovies[user.userMovies.length - 1]];
+                case 2:
                     err_2 = _a.sent();
-                    logger_1.logger.error("Error writing to database: ".concat(err_2.message));
+                    if (err_2 instanceof Error) {
+                        logger_1.logger.error("Failed to write movies to database: ".concat(err_2.message));
+                    }
+                    else {
+                        logger_1.logger.error('Failed to write movies to database: Unknown error');
+                    }
                     throw err_2;
-                case 7: return [2 /*return*/];
+                case 3: return [2 /*return*/];
             }
         });
     });
 }
 /**
- * Get all movie curations for a specific user
- * @param {String} userId
+ * Get all generations from the database for a user.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<singleGenerationObject[]>} - The list of movie generations.
  */
 function getMoviesFromDatabase(userId) {
     return __awaiter(this, void 0, void 0, function () {
@@ -123,13 +127,18 @@ function getMoviesFromDatabase(userId) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, getUser(userId)];
+                    return [4 /*yield*/, movieModel_1.default.findOne({ userId: userId }).lean()];
                 case 1:
                     user = _a.sent();
-                    return [2 /*return*/, user ? user.userMovies : null];
+                    return [2 /*return*/, user ? user.userMovies : []];
                 case 2:
                     err_3 = _a.sent();
-                    logger_1.logger.error("Error retrieving user movies: ".concat(err_3.message));
+                    if (err_3 instanceof Error) {
+                        logger_1.logger.error("Failed to retrieve movies from database: ".concat(err_3.message));
+                    }
+                    else {
+                        logger_1.logger.error('Failed to retrieve movies from database: Unknown error');
+                    }
                     throw err_3;
                 case 3: return [2 /*return*/];
             }
@@ -137,8 +146,9 @@ function getMoviesFromDatabase(userId) {
     });
 }
 /**
- * Get playlists and trending movies for a specific user
- * @param {String} userId
+ * Get all playlists and trending movies for a user.
+ * @param {string} userId - The ID of the user.
+ * @returns {Promise<any>} - The playlists and trending movies.
  */
 function getPlaylistsFromDatabase(userId) {
     return __awaiter(this, void 0, void 0, function () {
@@ -147,19 +157,24 @@ function getPlaylistsFromDatabase(userId) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, getTrendingNowPage()];
+                    return [4 /*yield*/, trending_1.default.find({}).lean()];
                 case 1:
                     trendingNow = _a.sent();
-                    return [4 /*yield*/, getUser(userId)];
+                    return [4 /*yield*/, movieModel_1.default.findOne({ userId: userId }).lean()];
                 case 2:
                     user = _a.sent();
                     return [2 /*return*/, {
                             userPlaylists: (user === null || user === void 0 ? void 0 : user.userPlaylists) || [],
-                            trendingNow: trendingNow
+                            trendingNow: trendingNow[0] || {}
                         }];
                 case 3:
                     err_4 = _a.sent();
-                    logger_1.logger.error("Failed to get playlists from database: ".concat(err_4.message));
+                    if (err_4 instanceof Error) {
+                        logger_1.logger.error("Failed to retrieve playlists and trending movies: ".concat(err_4.message));
+                    }
+                    else {
+                        logger_1.logger.error('Failed to retrieve playlists and trending movies: Unknown error');
+                    }
                     throw err_4;
                 case 4: return [2 /*return*/];
             }
@@ -167,68 +182,30 @@ function getPlaylistsFromDatabase(userId) {
     });
 }
 /**
- * Get the trending movies page
- */
-function getTrendingNowPage() {
-    return __awaiter(this, void 0, void 0, function () {
-        var trending, err_5;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, trending_1.default.find({}).lean()];
-                case 1:
-                    trending = _a.sent();
-                    return [2 /*return*/, trending[0]];
-                case 2:
-                    err_5 = _a.sent();
-                    logger_1.logger.error("Failed to get trending now page: ".concat(err_5.message));
-                    throw err_5;
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-/**
- * Get all movies from the database
- */
-function getAllMovies() {
-    return __awaiter(this, void 0, void 0, function () {
-        var err_6;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, movieModel_1.default.find({}).lean()];
-                case 1: return [2 /*return*/, _a.sent()];
-                case 2:
-                    err_6 = _a.sent();
-                    logger_1.logger.error("Failed to get all movies: ".concat(err_6.message));
-                    throw err_6;
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-/**
- * Get a single generation by its ID
- * @param {String} generationId
+ * Get a single generation by its ID.
+ * @param {string} generationId - The ID of the generation.
+ * @returns {Promise<any>} - The generation object.
  */
 function getSingleGeneration(generationId) {
     return __awaiter(this, void 0, void 0, function () {
-        var generations, err_7;
+        var generation, err_5;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     _a.trys.push([0, 2, , 3]);
                     return [4 /*yield*/, movieModel_1.default.findOne({ 'userMovies._id': generationId }).lean()];
                 case 1:
-                    generations = _a.sent();
-                    return [2 /*return*/, generations === null || generations === void 0 ? void 0 : generations.userMovies.find(function (generation) { return generation._id.toString() === generationId; })];
+                    generation = _a.sent();
+                    return [2 /*return*/, generation === null || generation === void 0 ? void 0 : generation.userMovies.find(function (gen) { return gen._id.toString() === generationId; })];
                 case 2:
-                    err_7 = _a.sent();
-                    logger_1.logger.error("Failed to get single generation from database: ".concat(err_7.message));
-                    throw err_7;
+                    err_5 = _a.sent();
+                    if (err_5 instanceof Error) {
+                        logger_1.logger.error("Failed to get single generation: ".concat(err_5.message));
+                    }
+                    else {
+                        logger_1.logger.error('Failed to get single generation: Unknown error');
+                    }
+                    throw err_5;
                 case 3: return [2 /*return*/];
             }
         });

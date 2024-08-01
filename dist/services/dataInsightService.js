@@ -38,11 +38,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.calculateData = calculateData;
 exports.calculateDailyGenerations = calculateDailyGenerations;
+exports.chartController = chartController;
 var logger_1 = require("../helpers/logger");
 function calculateData(startDate_1, endDate_1) {
     return __awaiter(this, arguments, void 0, function (startDate, endDate, propObj, propList, type) {
         var movies, data_1, labels_1;
-        if (propObj === void 0) { propObj = null; }
+        if (propObj === void 0) { propObj = {}; }
         return __generator(this, function (_a) {
             try {
                 movies = propList
@@ -70,13 +71,13 @@ function calculateData(startDate_1, endDate_1) {
                 });
                 data_1 = [];
                 labels_1 = [];
-                Object.entries(propObj).map(function (_a) {
+                Object.entries(propObj).forEach(function (_a) {
                     var key = _a[0], value = _a[1];
                     data_1.push(value);
                     labels_1.push(key);
                 });
                 return [2 /*return*/, {
-                        labels: { labels: labels_1 },
+                        labels: labels_1,
                         datasets: [{
                                 label: 'Number of Selections',
                                 data: data_1,
@@ -124,7 +125,7 @@ function calculateDailyGenerations(startDate, endDate, moviesObj) {
                     _loop_1();
                 }
                 return [2 /*return*/, {
-                        labels: { labels: dates },
+                        labels: dates,
                         datasets: [{
                                 label: 'Number of Selections',
                                 data: count,
@@ -144,5 +145,34 @@ function calculateDailyGenerations(startDate, endDate, moviesObj) {
         });
     });
 }
-// Los otros métodos permanecen sin cambios...
+// Definir y exportar el chartController
+function chartController(startDate, endDate, chartType) {
+    return __awaiter(this, void 0, void 0, function () {
+        var result, propObj, propList, err_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 5, , 6]);
+                    result = void 0;
+                    propObj = {};
+                    propList = [];
+                    if (!(chartType === 'daily')) return [3 /*break*/, 2];
+                    return [4 /*yield*/, calculateDailyGenerations(startDate, endDate, propList)];
+                case 1:
+                    result = _a.sent();
+                    return [3 /*break*/, 4];
+                case 2: return [4 /*yield*/, calculateData(startDate, endDate, propObj, propList, chartType)];
+                case 3:
+                    result = _a.sent();
+                    _a.label = 4;
+                case 4: return [2 /*return*/, result];
+                case 5:
+                    err_1 = _a.sent();
+                    logger_1.logger.error("Failed to get data for chart: ".concat(err_1.message));
+                    throw err_1;
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
 //# sourceMappingURL=dataInsightService.js.map

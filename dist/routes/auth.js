@@ -47,9 +47,6 @@ var userModel_1 = __importDefault(require("../MongoModels/userModel"));
 var logger_1 = require("../helpers/logger");
 dotenv_1.default.config();
 var router = express_1.default.Router();
-//https://www.youtube.com/watch?v=USaB1adUHM0&list=PLillGF-RfqbbiTGgA77tGO426V3hRF9iE&index=9&t=1795s&ab_channel=TraversyMedia 
-//this video helped me in setting up the /login and /register routes
-//@route
 router.post('/login', function (req, res) {
     var _a = req.body, email = _a.email, password = _a.password;
     var jwtSecret = process.env.jwtSecret ? process.env.jwtSecret : '';

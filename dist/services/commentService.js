@@ -47,7 +47,6 @@ exports.setScore = setScore;
 var commentModel_1 = __importDefault(require("../MongoModels/commentModel"));
 var logger_1 = require("../helpers/logger");
 var discussionDbService_1 = require("../services/discussionDbService");
-// Método para actualizar un comentario existente
 function updateSingleComment(_id, commentText) {
     return __awaiter(this, void 0, void 0, function () {
         var result, err_1;
@@ -73,7 +72,6 @@ function updateSingleComment(_id, commentText) {
         });
     });
 }
-// Método para agregar un nuevo comentario
 function addComment(commentData) {
     return __awaiter(this, void 0, void 0, function () {
         var commentObj, savedComment, err_2;
@@ -88,8 +86,8 @@ function addComment(commentData) {
                             userName: commentData.userName
                         },
                         commentText: commentData.commentText,
-                        commentDownVotes: [], // Inicializar como un array vacío de números
-                        commentUpVotes: [], // Inicializar como un array vacío de números
+                        commentDownVotes: [],
+                        commentUpVotes: [],
                         isDeleted: false,
                         depth: commentData.depth || 1,
                         parentId: commentData.parentId || null
@@ -107,7 +105,6 @@ function addComment(commentData) {
         });
     });
 }
-// Método para obtener los comentarios de una película
 function getCommentsForPost(movie) {
     return __awaiter(this, void 0, void 0, function () {
         var isDiscussion, commentsForMovie, threads_1, filterChildren_1, err_3;
@@ -159,7 +156,6 @@ function getCommentsForPost(movie) {
         });
     });
 }
-// Método para eliminar un comentario
 function deleteComment(_id) {
     return __awaiter(this, void 0, void 0, function () {
         var err_4;
@@ -178,7 +174,6 @@ function deleteComment(_id) {
         });
     });
 }
-// Método para actualizar la puntuación de un comentario
 function setScore(_id, commentScore, value, userId, changedFromUpVote, changedFromDownVote) {
     return __awaiter(this, void 0, void 0, function () {
         var scoreType, err_5;
