@@ -6,9 +6,7 @@ import UserSchema from '../MongoModels/userModel';
 import { logger } from '../helpers/logger';
 dotenv.config();
 const router = express.Router();
-//https://www.youtube.com/watch?v=USaB1adUHM0&list=PLillGF-RfqbbiTGgA77tGO426V3hRF9iE&index=9&t=1795s&ab_channel=TraversyMedia 
-//this video helped me in setting up the /login and /register routes
-//@route
+
 router.post('/login', (req, res) => {
     const { email, password } = req.body;
     const jwtSecret = process.env.jwtSecret ? process.env.jwtSecret : '';
