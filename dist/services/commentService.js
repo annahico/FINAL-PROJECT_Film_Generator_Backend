@@ -1,4 +1,28 @@
 "use strict";
+// commentController.ts
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -48,8 +72,8 @@ exports.setScore = setScore;
 var commentModel_1 = __importDefault(require("../MongoModels/commentModel"));
 var logger_1 = require("../helpers/logger");
 var discussionDbService_1 = require("../services/discussionDbService");
-// Importar funciones del servicio de base de datos de películas
-var movieDbService_1 = require("../services/movieDbService");
+// Importar todos los servicios de películas de una sola vez
+var MovieServices = __importStar(require("../services/movieDbService"));
 function updateSingleComment(_id, commentText) {
     return __awaiter(this, void 0, void 0, function () {
         var result, err_1;
@@ -205,13 +229,6 @@ function setScore(_id, commentScore, value, userId, changedFromUpVote, changedFr
         });
     });
 }
-// Exportar funciones del servicio de base de datos de películas
-exports.createCommunityMovie = movieDbService_1.createCommunityMovie;
-exports.deleteCommunityMovie = movieDbService_1.deleteCommunityMovie;
-exports.getAllCommunityMovies = movieDbService_1.getAllCommunityMovies;
-exports.getAllDiscussions = movieDbService_1.getAllDiscussions;
-exports.getMovie = movieDbService_1.getMovie;
-exports.getSingleCommunityMovie = movieDbService_1.getSingleCommunityMovie;
-exports.getUserUploadsForSingleUser = movieDbService_1.getUserUploadsForSingleUser;
-exports.updateUserMovie = movieDbService_1.updateUserMovie;
+// Reexportar funciones del servicio de películas directamente
+exports.createCommunityMovie = MovieServices.createCommunityMovieFromService, exports.deleteCommunityMovie = MovieServices.deleteCommunityMovieFromService, exports.getAllCommunityMovies = MovieServices.getAllCommunityMoviesFromService, exports.getAllDiscussions = MovieServices.getAllDiscussionsFromService, exports.getMovie = MovieServices.getMovieFromService, exports.getSingleCommunityMovie = MovieServices.getSingleCommunityMovieFromService, exports.getUserUploadsForSingleUser = MovieServices.getUserUploadsForSingleUserFromService, exports.updateUserMovie = MovieServices.updateUserMovieFromService;
 //# sourceMappingURL=commentService.js.map

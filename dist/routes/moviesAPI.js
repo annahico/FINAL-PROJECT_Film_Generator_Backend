@@ -50,11 +50,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.writeToDatabase = void 0;
 var express_1 = __importDefault(require("express"));
 var logger_1 = require("../helpers/logger");
 var auth_1 = require("../middleware/auth");
+var communityMovie_1 = __importDefault(require("../MongoModels/communityMovie"));
 var commentService_1 = require("../services/commentService"); // Mantener importaciones como están
-var discoverMoviesService_1 = require("../services/discoverMoviesService");
+var discussionDbService_1 = require("../services/discussionDbService");
 var movieDbService_1 = require("../services/movieDbService");
 // eslint-disable-next-line new-cap
 var router = express_1.default.Router();
@@ -62,47 +64,26 @@ var router = express_1.default.Router();
  * @Route /api/movies/movieGeneration
  * @Desc Retrieve user input and filter movies
  */
-router.post('/movieGeneration', auth_1.generationAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var id, formattedMovies, isRevised, dbFormattedMovies, err_1, isRevised, _a, _b, _c;
-    var _d;
-    return __generator(this, function (_e) {
-        switch (_e.label) {
+var writeToDatabase = function (data, userId) { return __awaiter(void 0, void 0, void 0, function () {
+    var newEntry, err_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
             case 0:
-                id = req.body.user ? req.body.user.id : null;
-                _e.label = 1;
+                _a.trys.push([0, 2, , 3]);
+                newEntry = new communityMovie_1.default(__assign(__assign({}, data), { userId: userId }));
+                return [4 /*yield*/, newEntry.save()];
             case 1:
-                _e.trys.push([1, 4, , 7]);
-                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)(req.body.MovieGenerationModel)];
+                _a.sent();
+                return [2 /*return*/, newEntry.toObject()]; // Devuelve el objeto de la película
             case 2:
-                formattedMovies = _e.sent();
-                isRevised = req.body.MovieGenerationModel !== formattedMovies.movieSearchCriteria;
-                if (!id) {
-                    res.json(__assign(__assign({}, formattedMovies), { isRevised: isRevised }));
-                    return [2 /*return*/];
-                }
-                return [4 /*yield*/, (0, movieDbService_1.writeToDatabase)(formattedMovies, id)];
-            case 3:
-                dbFormattedMovies = _e.sent();
-                res.json(__assign(__assign({}, dbFormattedMovies), { isRevised: isRevised }));
-                logger_1.logger.info("Movie successfully written to DB");
-                return [3 /*break*/, 7];
-            case 4:
-                err_1 = _e.sent();
-                logger_1.logger.error("Failed to write movies to DB: ".concat(err_1.message));
-                _a = req.body.MovieGenerationModel;
-                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)(req.body.MovieGenerationModel)];
-            case 5:
-                isRevised = _a !== (_e.sent()).movieSearchCriteria;
-                _c = (_b = res).json;
-                _d = {};
-                return [4 /*yield*/, (0, discoverMoviesService_1.returnMovies)(req.body.MovieGenerationModel)];
-            case 6:
-                _c.apply(_b, [(_d.formattedMovies = _e.sent(), _d.isRevised = isRevised, _d)]);
-                return [3 /*break*/, 7];
-            case 7: return [2 /*return*/];
+                err_1 = _a.sent();
+                logger_1.logger.error("Failed to write to database: ".concat(err_1.message));
+                throw err_1;
+            case 3: return [2 /*return*/];
         }
     });
-}); });
+}); };
+exports.writeToDatabase = writeToDatabase;
 router.get('/generations/single/:generationId', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var generation, err_2;
     return __generator(this, function (_a) {
@@ -214,7 +195,7 @@ router.post('/discussions/create', function (req, res) { return __awaiter(void 0
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 5, , 6]);
-                return [4 /*yield*/, checkIfDiscussionExists(req.body.movieId)];
+                return [4 /*yield*/, (0, discussionDbService_1.checkIfDiscussionExists)(req.body.movieId)];
             case 1:
                 exists = _a.sent();
                 if (!!exists) return [3 /*break*/, 3];
@@ -561,4 +542,7 @@ router.get('/indie/user/single/movie/:movieId', auth_1.getAuth, function (req, r
     });
 }); });
 exports.default = router;
+function createDiscussion(body) {
+    throw new Error('Function not implemented.');
+}
 //# sourceMappingURL=moviesAPI.js.map

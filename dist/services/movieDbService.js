@@ -50,7 +50,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserMovieFromService = exports.getUserUploadsForSingleUserFromService = exports.getSingleCommunityMovieFromService = exports.getAllCommunityMoviesFromService = exports.deleteCommunityMovieFromService = exports.createCommunityMovieFromService = void 0;
+exports.writeToDatabase = exports.getSingleGeneration = exports.getPlaylistsFromDatabase = exports.getMoviesFromDatabase = exports.getMovieFromService = exports.getAllDiscussionsFromService = exports.updateUserMovieFromService = exports.getUserUploadsForSingleUserFromService = exports.getSingleCommunityMovieFromService = exports.getAllCommunityMoviesFromService = exports.deleteCommunityMovieFromService = exports.createCommunityMovieFromService = void 0;
 var logger_1 = require("../helpers/logger");
 var movieModel_1 = __importDefault(require("../MongoModels/movieModel"));
 // Funciones del servicio de base de datos
@@ -83,7 +83,7 @@ var deleteCommunityMovieFromService = function (movieId) { return __awaiter(void
                 return [4 /*yield*/, movieModel_1.default.findByIdAndDelete(movieId).exec()];
             case 1:
                 result = _a.sent();
-                return [2 /*return*/, result]; // `result` ya es un documento de tipo `CommunityMovieDoc`
+                return [2 /*return*/, result];
             case 2:
                 err_2 = _a.sent();
                 logger_1.logger.error("Failed to delete community movie: ".concat(err_2.message));
@@ -102,7 +102,7 @@ var getAllCommunityMoviesFromService = function () { return __awaiter(void 0, vo
                 return [4 /*yield*/, movieModel_1.default.find({}).exec()];
             case 1:
                 movies = _a.sent();
-                return [2 /*return*/, movies]; // `movies` ya es un array de documentos `CommunityMovieDoc`
+                return [2 /*return*/, movies];
             case 2:
                 err_3 = _a.sent();
                 logger_1.logger.error("Failed to get all community movies: ".concat(err_3.message));
@@ -121,7 +121,7 @@ var getSingleCommunityMovieFromService = function (movieId, userId) { return __a
                 return [4 /*yield*/, movieModel_1.default.findOne({ _id: movieId, createdBy: userId }).exec()];
             case 1:
                 movie = _a.sent();
-                return [2 /*return*/, movie]; // `movie` ya es de tipo `CommunityMovieDoc | null`
+                return [2 /*return*/, movie];
             case 2:
                 err_4 = _a.sent();
                 logger_1.logger.error("Failed to get single community movie: ".concat(err_4.message));
@@ -140,7 +140,7 @@ var getUserUploadsForSingleUserFromService = function (userId) { return __awaite
                 return [4 /*yield*/, movieModel_1.default.find({ createdBy: userId }).exec()];
             case 1:
                 movies = _a.sent();
-                return [2 /*return*/, movies]; // `movies` ya es un array de documentos `CommunityMovieDoc`
+                return [2 /*return*/, movies];
             case 2:
                 err_5 = _a.sent();
                 logger_1.logger.error("Failed to get user uploads for single user: ".concat(err_5.message));
@@ -151,22 +151,141 @@ var getUserUploadsForSingleUserFromService = function (userId) { return __awaite
 }); };
 exports.getUserUploadsForSingleUserFromService = getUserUploadsForSingleUserFromService;
 var updateUserMovieFromService = function (movieDetails) { return __awaiter(void 0, void 0, void 0, function () {
-    var updatedMovie, err_6;
+    var existingMovie, updatedDetails, updatedMovie, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, movieModel_1.default.findByIdAndUpdate(movieDetails._id, movieDetails, { new: true }).exec()];
+                _a.trys.push([0, 3, , 4]);
+                return [4 /*yield*/, movieModel_1.default.findById(movieDetails._id).exec()];
             case 1:
-                updatedMovie = _a.sent();
-                return [2 /*return*/, updatedMovie]; // `updatedMovie` ya es de tipo `CommunityMovieDoc | null`
+                existingMovie = _a.sent();
+                if (!existingMovie) {
+                    return [2 /*return*/, null];
+                }
+                updatedDetails = __assign(__assign({}, existingMovie.toObject()), movieDetails);
+                existingMovie.set(updatedDetails);
+                return [4 /*yield*/, existingMovie.save()];
             case 2:
+                updatedMovie = _a.sent();
+                return [2 /*return*/, updatedMovie];
+            case 3:
                 err_6 = _a.sent();
                 logger_1.logger.error("Failed to update user movie: ".concat(err_6.message));
                 throw err_6;
-            case 3: return [2 /*return*/];
+            case 4: return [2 /*return*/];
         }
     });
 }); };
 exports.updateUserMovieFromService = updateUserMovieFromService;
+var getAllDiscussionsFromService = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var discussions, err_7;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, movieModel_1.default.find({}).exec()];
+            case 1:
+                discussions = _a.sent();
+                return [2 /*return*/, discussions];
+            case 2:
+                err_7 = _a.sent();
+                logger_1.logger.error("Failed to get all discussions: ".concat(err_7.message));
+                throw err_7;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getAllDiscussionsFromService = getAllDiscussionsFromService;
+var getMovieFromService = function (movieId) { return __awaiter(void 0, void 0, void 0, function () {
+    var movie, err_8;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, movieModel_1.default.findById(movieId).exec()];
+            case 1:
+                movie = _a.sent();
+                return [2 /*return*/, movie];
+            case 2:
+                err_8 = _a.sent();
+                logger_1.logger.error("Failed to get movie: ".concat(err_8.message));
+                throw err_8;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getMovieFromService = getMovieFromService;
+// Nuevas funciones para getMoviesFromDatabase, getPlaylistsFromDatabase, getSingleGeneration y writeToDatabase
+var getMoviesFromDatabase = function (id) { return __awaiter(void 0, void 0, void 0, function () {
+    var movies, err_9;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, movieModel_1.default.find({}).exec()];
+            case 1:
+                movies = _a.sent();
+                return [2 /*return*/, movies];
+            case 2:
+                err_9 = _a.sent();
+                logger_1.logger.error("Failed to get movies from database: ".concat(err_9.message));
+                throw err_9;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getMoviesFromDatabase = getMoviesFromDatabase;
+var getPlaylistsFromDatabase = function (id) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        try {
+            // Lógica para obtener las listas de reproducción
+            return [2 /*return*/, []]; // Ajusta esto según el esquema y el modelo
+        }
+        catch (err) {
+            logger_1.logger.error("Failed to get playlists from database: ".concat(err.message));
+            throw err;
+        }
+        return [2 /*return*/];
+    });
+}); };
+exports.getPlaylistsFromDatabase = getPlaylistsFromDatabase;
+var getSingleGeneration = function (generationId) { return __awaiter(void 0, void 0, void 0, function () {
+    var generation, err_10;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, movieModel_1.default.findById(generationId).exec()];
+            case 1:
+                generation = _a.sent();
+                return [2 /*return*/, generation];
+            case 2:
+                err_10 = _a.sent();
+                logger_1.logger.error("Failed to get single generation: ".concat(err_10.message));
+                throw err_10;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.getSingleGeneration = getSingleGeneration;
+var writeToDatabase = function (data, id) { return __awaiter(void 0, void 0, void 0, function () {
+    var newEntry, err_11;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                newEntry = new movieModel_1.default(data);
+                return [4 /*yield*/, newEntry.save()];
+            case 1:
+                _a.sent();
+                return [3 /*break*/, 3];
+            case 2:
+                err_11 = _a.sent();
+                logger_1.logger.error("Failed to write to database: ".concat(err_11.message));
+                throw err_11;
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.writeToDatabase = writeToDatabase;
 //# sourceMappingURL=movieDbService.js.map

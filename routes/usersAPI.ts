@@ -1,25 +1,12 @@
-import express, { Request, Response } from 'express';
+// routes/usersAPI.ts
+import express, { Response } from 'express';
 import UserSchema from '../MongoModels/userModel';
 import { logger } from '../helpers/logger';
 import { auth, getAuth } from '../middleware/auth';
 import { updateUser } from '../services/userDbService';
+import { AuthenticatedRequest } from '../types/custom-types';
 
 const router = express.Router();
-
-// Define una interfaz para el tipo de usuario decodificado
-interface JwtPayload {
-    id: string;
-    email: string;
-}
-
-// Extiende la interfaz Request para incluir token
-interface AuthenticatedRequest extends Request {
-    token?: JwtPayload;
-    body: {
-        user?: JwtPayload;
-        userDetails?: any; // Ajusta el tipo según la estructura de userDetails
-    };
-}
 
 // @route GET /user
 // @desc Get user info
