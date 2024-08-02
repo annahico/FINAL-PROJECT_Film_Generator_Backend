@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Start server
 app.listen(process.env.PORT, () => {
-    logger.info(`App is listening on port ${endpoints.PORT}`);
+    logger.info(` 🚀 Server is listening on port ${endpoints.PORT}`);
 });
 
 // MongoDB configuration and connection
@@ -25,7 +25,7 @@ const db = endpoints.MONGO_URI;
 mongoose.connect(db)
     .then(() => {
         console.log('Mongoose successfully connected');
-        logger.info('Mongoose successfully connected');
+        logger.info('🛢️ Mongoose successfully connected');
     })
     .catch((err) => {
         logger.error('Mongoose connection error:', err);
