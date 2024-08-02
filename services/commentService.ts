@@ -1,20 +1,13 @@
+// commentController.ts
+
 import CommentSchema from '../MongoModels/commentModel';
 import { logger } from '../helpers/logger';
 import { checkIfDiscussionExists } from '../services/discussionDbService';
 import { tsCommentSchema } from '../tsModels/commentModels';
 import { movieObject } from '../tsModels/movieGenerationModel';
 
-// Importar funciones del servicio de base de datos de películas
-import {
-    createCommunityMovie as createCommunityMovieFromService,
-    deleteCommunityMovie as deleteCommunityMovieFromService,
-    getAllCommunityMovies as getAllCommunityMoviesFromService,
-    getAllDiscussions as getAllDiscussionsFromService,
-    getMovie as getMovieFromService,
-    getSingleCommunityMovie as getSingleCommunityMovieFromService,
-    getUserUploadsForSingleUser as getUserUploadsForSingleUserFromService,
-    updateUserMovie as updateUserMovieFromService
-} from '../services/movieDbService';
+// Importar todos los servicios de películas de una sola vez
+import * as MovieServices from '../services/movieDbService';
 
 interface UpdateResult {
     acknowledged: boolean;
@@ -151,13 +144,14 @@ export async function setScore(
     }
 }
 
-// Exportar funciones del servicio de base de datos de películas
-
-export const createCommunityMovie = createCommunityMovieFromService;
-export const deleteCommunityMovie = deleteCommunityMovieFromService;
-export const getAllCommunityMovies = getAllCommunityMoviesFromService;
-export const getAllDiscussions = getAllDiscussionsFromService;
-export const getMovie = getMovieFromService;
-export const getSingleCommunityMovie = getSingleCommunityMovieFromService;
-export const getUserUploadsForSingleUser = getUserUploadsForSingleUserFromService;
-export const updateUserMovie = updateUserMovieFromService;
+// Reexportar funciones del servicio de películas directamente
+export const {
+    createCommunityMovieFromService: createCommunityMovie,
+    deleteCommunityMovieFromService: deleteCommunityMovie,
+    getAllCommunityMoviesFromService: getAllCommunityMovies,
+    getAllDiscussionsFromService: getAllDiscussions,
+    getMovieFromService: getMovie,
+    getSingleCommunityMovieFromService: getSingleCommunityMovie,
+    getUserUploadsForSingleUserFromService: getUserUploadsForSingleUser,
+    updateUserMovieFromService: updateUserMovie
+} = MovieServices;

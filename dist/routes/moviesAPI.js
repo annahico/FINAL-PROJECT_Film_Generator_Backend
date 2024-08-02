@@ -53,7 +53,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var express_1 = __importDefault(require("express"));
 var logger_1 = require("../helpers/logger");
 var auth_1 = require("../middleware/auth");
-var commentService_1 = require("../services/commentService");
+var commentService_1 = require("../services/commentService"); // Mantener importaciones como están
 var discoverMoviesService_1 = require("../services/discoverMoviesService");
 var movieDbService_1 = require("../services/movieDbService");
 // eslint-disable-next-line new-cap
@@ -214,11 +214,11 @@ router.post('/discussions/create', function (req, res) { return __awaiter(void 0
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 5, , 6]);
-                return [4 /*yield*/, (0, commentService_1.checkIfDiscussionExists)(req.body.movieId)];
+                return [4 /*yield*/, checkIfDiscussionExists(req.body.movieId)];
             case 1:
                 exists = _a.sent();
                 if (!!exists) return [3 /*break*/, 3];
-                return [4 /*yield*/, (0, commentService_1.createDiscussion)(req.body)];
+                return [4 /*yield*/, createDiscussion(req.body)];
             case 2:
                 movie = _a.sent();
                 res.json(movie);
@@ -270,7 +270,7 @@ router.post('/comments/getComments', function (req, res) { return __awaiter(void
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, (0, commentService_1.getCommentsForPost)(req.body)];
+                return [4 /*yield*/, (0, commentService_1.getCommentsForPost)(req.body.movieId)];
             case 1:
                 comments = _a.sent();
                 res.json(comments);

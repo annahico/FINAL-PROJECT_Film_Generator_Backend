@@ -39,6 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.updateUserMovie = exports.getUserUploadsForSingleUser = exports.getSingleCommunityMovie = exports.getMovie = exports.getAllDiscussions = exports.getAllCommunityMovies = exports.deleteCommunityMovie = exports.createCommunityMovie = void 0;
 exports.updateSingleComment = updateSingleComment;
 exports.addComment = addComment;
 exports.getCommentsForPost = getCommentsForPost;
@@ -47,6 +48,8 @@ exports.setScore = setScore;
 var commentModel_1 = __importDefault(require("../MongoModels/commentModel"));
 var logger_1 = require("../helpers/logger");
 var discussionDbService_1 = require("../services/discussionDbService");
+// Importar funciones del servicio de base de datos de películas
+var movieDbService_1 = require("../services/movieDbService");
 function updateSingleComment(_id, commentText) {
     return __awaiter(this, void 0, void 0, function () {
         var result, err_1;
@@ -202,4 +205,13 @@ function setScore(_id, commentScore, value, userId, changedFromUpVote, changedFr
         });
     });
 }
+// Exportar funciones del servicio de base de datos de películas
+exports.createCommunityMovie = movieDbService_1.createCommunityMovie;
+exports.deleteCommunityMovie = movieDbService_1.deleteCommunityMovie;
+exports.getAllCommunityMovies = movieDbService_1.getAllCommunityMovies;
+exports.getAllDiscussions = movieDbService_1.getAllDiscussions;
+exports.getMovie = movieDbService_1.getMovie;
+exports.getSingleCommunityMovie = movieDbService_1.getSingleCommunityMovie;
+exports.getUserUploadsForSingleUser = movieDbService_1.getUserUploadsForSingleUser;
+exports.updateUserMovie = movieDbService_1.updateUserMovie;
 //# sourceMappingURL=commentService.js.map

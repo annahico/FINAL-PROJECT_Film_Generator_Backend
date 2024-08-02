@@ -3,9 +3,9 @@ import { logger } from '../helpers/logger';
 import { auth, generationAuth, getAuth } from '../middleware/auth';
 import {
     addComment,
-    checkIfDiscussionExists,
+    // checkIfDiscussionExists,
     createCommunityMovie,
-    createDiscussion,
+    // createDiscussion,
     deleteComment,
     deleteCommunityMovie,
     getAllCommunityMovies,
