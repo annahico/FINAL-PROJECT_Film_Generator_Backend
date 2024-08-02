@@ -1,8 +1,0 @@
-{
-    "files.exclude": {
-        ".git": true,
-        "**/.git": false,
-        "/client.git": true
-    },
-    "git.ignoreLimitWarning": true
-}
