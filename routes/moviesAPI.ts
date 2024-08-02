@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import { logger } from '../helpers/logger';
-import { auth, generationAuth, getAuth } from '../middleware/auth';
+import { auth, getAuth } from '../middleware/auth';
+import CommunityMovie from '../MongoModels/communityMovie';
 import {
     addComment,
     // checkIfDiscussionExists,
@@ -18,12 +19,12 @@ import {
     updateSingleComment,
     updateUserMovie
 } from '../services/commentService'; // Mantener importaciones como están
-import { returnMovies } from '../services/discoverMoviesService';
+import { checkIfDiscussionExists } from '../services/discussionDbService';
 import {
     getMoviesFromDatabase,
     getPlaylistsFromDatabase,
     getSingleGeneration,
-    writeToDatabase
+    MovieGenerationModel
 } from '../services/movieDbService';
 
 // eslint-disable-next-line new-cap
@@ -33,26 +34,17 @@ const router = express.Router();
  * @Route /api/movies/movieGeneration
  * @Desc Retrieve user input and filter movies
  */
-router.post('/movieGeneration', generationAuth, async (req: Request, res: Response) => {
-    const id = req.body.user ? req.body.user.id : null;
+export const writeToDatabase = async (data: MovieGenerationModel, userId: string): Promise<MovieGenerationModel> => {
     try {
-        const formattedMovies = await returnMovies(req.body.MovieGenerationModel);
-        const isRevised = req.body.MovieGenerationModel !== formattedMovies.movieSearchCriteria;
-
-        if (!id) {
-            res.json({ ...formattedMovies, isRevised });
-            return;
-        }
-
-        const dbFormattedMovies = await writeToDatabase(formattedMovies, id);
-        res.json({ ...dbFormattedMovies, isRevised });
-        logger.info(`Movie successfully written to DB`);
+        const newEntry = new CommunityMovie({ ...data, userId }); // Añade el userId si es necesario
+        await newEntry.save();
+        return newEntry.toObject() as unknown as MovieGenerationModel; // Devuelve el objeto de la película
     } catch (err) {
-        logger.error(`Failed to write movies to DB: ${(err as Error).message}`);
-        const isRevised = req.body.MovieGenerationModel !== (await returnMovies(req.body.MovieGenerationModel)).movieSearchCriteria;
-        res.json({ formattedMovies: await returnMovies(req.body.MovieGenerationModel), isRevised });
+        logger.error(`Failed to write to database: ${(err as Error).message}`);
+        throw err;
     }
-});
+};
+
 
 router.get('/generations/single/:generationId', async (req: Request, res: Response) => {
     try {
@@ -317,3 +309,7 @@ router.get('/indie/user/single/movie/:movieId', getAuth, async (req: Request, re
 });
 
 export default router;
+function createDiscussion(body: any) {
+    throw new Error('Function not implemented.');
+}
+

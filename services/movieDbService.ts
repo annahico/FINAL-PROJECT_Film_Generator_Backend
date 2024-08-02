@@ -1,5 +1,3 @@
-// movieDbService.ts
-
 import { Document } from 'mongoose';
 import { logger } from '../helpers/logger';
 import CommunityMovie from '../MongoModels/movieModel';
@@ -27,7 +25,7 @@ export const createCommunityMovieFromService = async (movieObj: MovieGenerationM
     try {
         const newMovie = new CommunityMovie({ ...movieObj, createdBy: currentUser });
         await newMovie.save();
-        return newMovie as unknown as unknown as CommunityMovieDoc;
+        return newMovie as unknown as CommunityMovieDoc;
     } catch (err) {
         logger.error(`Failed to create community movie: ${(err as Error).message}`);
         throw err;
@@ -74,23 +72,18 @@ export const getUserUploadsForSingleUserFromService = async (userId: string): Pr
     }
 };
 
-// Modificación aquí
 export const updateUserMovieFromService = async (movieDetails: MovieGenerationModel): Promise<CommunityMovieDoc | null> => {
     try {
-        // Buscar la película existente primero
         const existingMovie = await CommunityMovie.findById(movieDetails._id).exec();
 
         if (!existingMovie) {
-            return null; // Retornar null si no se encuentra la película
+            return null; 
         }
 
-        // Verificar si faltan propiedades en movieDetails y asignarlas desde existingMovie
         const updatedDetails = { ...existingMovie.toObject(), ...movieDetails };
 
-        // Actualizar los campos del documento existente
         existingMovie.set(updatedDetails);
 
-        // Guardar los cambios y retornar el documento actualizado
         const updatedMovie = await existingMovie.save();
         return updatedMovie as unknown as CommunityMovieDoc;
     } catch (err) {
@@ -99,12 +92,9 @@ export const updateUserMovieFromService = async (movieDetails: MovieGenerationMo
     }
 };
 
-// Añadir exportaciones adicionales para getAllDiscussionsFromService y getMovieFromService
-
 export const getAllDiscussionsFromService = async (): Promise<Discussion[]> => {
     try {
-        // Implementación de ejemplo para obtener todas las discusiones
-        const discussions = await CommunityMovie.find({}).exec(); // Esto es solo un ejemplo
+        const discussions = await CommunityMovie.find({}).exec();
         return discussions as unknown as Discussion[];
     } catch (err) {
         logger.error(`Failed to get all discussions: ${(err as Error).message}`);
@@ -121,3 +111,46 @@ export const getMovieFromService = async (movieId: string): Promise<CommunityMov
         throw err;
     }
 };
+
+// Nuevas funciones para getMoviesFromDatabase, getPlaylistsFromDatabase, getSingleGeneration y writeToDatabase
+
+export const getMoviesFromDatabase = async (id: string): Promise<MovieGenerationModel[]> => {
+    try {
+        const movies = await CommunityMovie.find({}).exec();
+        return movies as unknown as MovieGenerationModel[]; 
+    } catch (err) {
+        logger.error(`Failed to get movies from database: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
+export const getPlaylistsFromDatabase = async (id?: string): Promise<any[]> => {
+    try {
+        // Lógica para obtener las listas de reproducción
+        return []; // Ajusta esto según el esquema y el modelo
+    } catch (err) {
+        logger.error(`Failed to get playlists from database: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
+export const getSingleGeneration = async (generationId: string): Promise<MovieGenerationModel | null> => {
+    try {
+        const generation = await CommunityMovie.findById(generationId).exec();
+        return generation as unknown as MovieGenerationModel; 
+    } catch (err) {
+        logger.error(`Failed to get single generation: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
+export const writeToDatabase = async (data: MovieGenerationModel, id: any): Promise<void> => {
+    try {
+        const newEntry = new CommunityMovie(data);
+        await newEntry.save();
+    } catch (err) {
+        logger.error(`Failed to write to database: ${(err as Error).message}`);
+        throw err;
+    }
+};
+
