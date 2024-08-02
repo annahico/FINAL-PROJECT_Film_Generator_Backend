@@ -18,14 +18,14 @@ exports.getMovie = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Movies retrieved successfully.",
+            message: "Films retrieved successfully.",
             allMovies
         });
     } catch (error) {
         console.error(error.message);
         return res.status(500).json({
             success: false,
-            message: "An error occurred while fetching movies."
+            message: "An error occurred while fetching films."
         });
     }
 };
@@ -40,7 +40,7 @@ exports.setMovieFav = async (req, res) => {
         if (!movie) {
             return res.status(404).json({
                 success: false,
-                message: "Movie not found."
+                message: "Film not found."
             });
         }
 
@@ -55,7 +55,7 @@ exports.setMovieFav = async (req, res) => {
         if (user.FavMovie.includes(movieId)) {
             return res.status(400).json({
                 success: false,
-                message: "Movie is already in favorites."
+                message: "Film is already in favorites."
             });
         }
 
@@ -64,14 +64,14 @@ exports.setMovieFav = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Movie added to favorites successfully.",
+            message: "Film added to favorites successfully.",
             favMovies: user.FavMovie
         });
     } catch (error) {
         console.error(error.message);
         return res.status(500).json({
             success: false,
-            message: "An error occurred while setting the favorite movie."
+            message: "An error occurred while setting the favorite film."
         });
     }
 };
@@ -94,7 +94,7 @@ exports.removeFavMovie = async (req, res) => {
         if (!user.FavMovie.some(id => id.equals(movieObjectId))) {
             return res.status(400).json({
                 success: false,
-                message: "Movie is not in favorites."
+                message: "Film is not in favorites."
             });
         }
 
@@ -105,14 +105,14 @@ exports.removeFavMovie = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Movie removed from favorites successfully.",
+            message: "Film removed from favorites successfully.",
             favMovies: updatedUser.FavMovie
         });
     } catch (error) {
-        console.error("Error removing favorite movie:", error.message);
+        console.error("Error removing favorite film:", error.message);
         return res.status(500).json({
             success: false,
-            message: "An error occurred while removing the favorite movie."
+            message: "An error occurred while removing the favorite film."
         });
     }
 };
@@ -145,20 +145,20 @@ exports.getUserFavMovies = async (req, res) => {
         if (!favMovies || favMovies.length === 0) {
             return res.status(404).json({
                 success: false,
-                message: "No favorite movies found."
+                message: "No favorite films found."
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: "Favorite movies retrieved successfully.",
+            message: "Favorite films retrieved successfully.",
             favMovies
         });
     } catch (error) {
         console.error(error.message);
         return res.status(500).json({
             success: false,
-            message: "An error occurred while retrieving favorite movies."
+            message: "An error occurred while retrieving favorite films."
         });
     }
 };
@@ -187,7 +187,7 @@ exports.addComment = async (req, res) => {
         if (!movie) {
             return res.status(404).json({
                 success: false,
-                message: "Movie not found."
+                message: "Film not found."
             });
         }
 
