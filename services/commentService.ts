@@ -1,5 +1,3 @@
-// commentController.ts
-
 import CommentSchema from '../MongoModels/commentModel';
 import { logger } from '../helpers/logger';
 import { checkIfDiscussionExists } from '../services/discussionDbService';
@@ -23,13 +21,23 @@ export async function updateSingleComment(_id: string, commentText: string): Pro
     }
 
     try {
-        const result: UpdateResult = await CommentSchema.updateOne({ _id }, { $set: { commentText } }).exec();
-        return result.modifiedCount > 0;
+        const result = await CommentSchema.updateOne({ _id }, { $set: { commentText } }).exec();
+        
+        const updateResult: UpdateResult = {
+            acknowledged: result.acknowledged,
+            modifiedCount: result.modifiedCount,
+            upsertedId: result.upsertedId ? result.upsertedId.toString() : undefined,
+            upsertedCount: result.upsertedCount,
+            matchedCount: result.matchedCount
+        };
+
+        return updateResult.modifiedCount > 0;
     } catch (err) {
         logger.error(`Failed to update comment: ${(err as Error).message}`);
         throw err;
     }
 }
+
 
 export async function addComment(commentData: any): Promise<tsCommentSchema> {
     try {

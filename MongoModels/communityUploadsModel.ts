@@ -27,20 +27,20 @@ const CommunityUploads = new Schema({
         },
         movieImagePath: {
             type: String,
-            required: false
+            required: true
         },
         movieGenres: {
             type: String,
-            required: false
+            required: true
         },
         movieStudio: {
             type: String,
-            required: false,
+            required: true,
             default: null
         },
         movieCredits: {
             type: String,
-            required: false,
+            required: true,
             default: null
         }
     }

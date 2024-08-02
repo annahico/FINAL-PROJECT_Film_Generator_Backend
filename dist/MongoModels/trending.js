@@ -32,19 +32,19 @@ var Trending = new mongoose_1.Schema({
     movieSearchCriteria: {
         sort_by: {
             type: String,
-            required: false,
+            required: true,
         },
         with_genres: {
             type: String,
-            required: false,
+            required: true,
         },
         primary_release_year: {
             type: String,
-            required: false,
+            required: true,
         },
         with_keywords: {
             type: String,
-            required: false
+            required: true
         }
     },
     movies: [
@@ -67,7 +67,7 @@ var Trending = new mongoose_1.Schema({
             },
             movieReleaseYear: {
                 type: String,
-                required: false,
+                required: true,
             },
             movieGenres: {
                 type: String,
@@ -75,7 +75,7 @@ var Trending = new mongoose_1.Schema({
             },
             moviePopularity: {
                 type: String,
-                required: false,
+                required: true,
             },
         },
     ],

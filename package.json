@@ -5,9 +5,10 @@
   "main": "index.ts",
   "scripts": {
     "test": "cross-env NODE_ENV=test jest --coverage",
-    "build": "tsc",
+    "build": "npm run clean && tsc",
     "start": "node dist/server.js",
-    "local": "PORT=8080 nodemon server.ts"
+    "local": "PORT=8080 nodemon server.ts",
+    "clean:win": "rmdir /s /q dist"
   },
   "keywords": [],
   "author": "",

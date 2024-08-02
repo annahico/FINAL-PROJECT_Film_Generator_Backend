@@ -1,5 +1,4 @@
 "use strict";
-// commentController.ts
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -76,7 +75,7 @@ var discussionDbService_1 = require("../services/discussionDbService");
 var MovieServices = __importStar(require("../services/movieDbService"));
 function updateSingleComment(_id, commentText) {
     return __awaiter(this, void 0, void 0, function () {
-        var result, err_1;
+        var result, updateResult, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -89,7 +88,14 @@ function updateSingleComment(_id, commentText) {
                     return [4 /*yield*/, commentModel_1.default.updateOne({ _id: _id }, { $set: { commentText: commentText } }).exec()];
                 case 2:
                     result = _a.sent();
-                    return [2 /*return*/, result.modifiedCount > 0];
+                    updateResult = {
+                        acknowledged: result.acknowledged,
+                        modifiedCount: result.modifiedCount,
+                        upsertedId: result.upsertedId ? result.upsertedId.toString() : undefined,
+                        upsertedCount: result.upsertedCount,
+                        matchedCount: result.matchedCount
+                    };
+                    return [2 /*return*/, updateResult.modifiedCount > 0];
                 case 3:
                     err_1 = _a.sent();
                     logger_1.logger.error("Failed to update comment: ".concat(err_1.message));

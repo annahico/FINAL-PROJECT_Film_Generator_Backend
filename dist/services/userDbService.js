@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -57,60 +46,56 @@ var logger_1 = require("../helpers/logger");
 var userModel_1 = __importDefault(require("../MongoModels/userModel"));
 function updateUser(_id, userDetails) {
     return __awaiter(this, void 0, void 0, function () {
-        var user, isMatch, salt, hashedPassword, updatedUser, err_1, updatedUser, err_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+        var user, isMatch, salt, _a, updatedUser, updatedUser, err_1;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    if (!userDetails.currentPassword) return [3 /*break*/, 9];
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 7, , 8]);
+                    _b.trys.push([0, 10, , 11]);
+                    if (!userDetails.currentPassword) return [3 /*break*/, 7];
                     return [4 /*yield*/, userModel_1.default.findOne({ _id: _id })];
-                case 2:
-                    user = _a.sent();
+                case 1:
+                    user = _b.sent();
                     if (!user) {
                         throw new Error("This user does not exist");
                     }
                     return [4 /*yield*/, bcryptjs_1.default.compare(userDetails.currentPassword, user.password)];
-                case 3:
-                    isMatch = _a.sent();
+                case 2:
+                    isMatch = _b.sent();
                     if (!isMatch) {
                         throw new Error("Incorrect Password");
                     }
+                    if (!userDetails.password) return [3 /*break*/, 5];
                     return [4 /*yield*/, bcryptjs_1.default.genSalt(10)];
-                case 4:
-                    salt = _a.sent();
+                case 3:
+                    salt = _b.sent();
+                    _a = userDetails;
                     return [4 /*yield*/, bcryptjs_1.default.hash(userDetails.password, salt)];
-                case 5:
-                    hashedPassword = _a.sent();
-                    userDetails.password = hashedPassword;
-                    return [4 /*yield*/, user.update({ $set: __assign({}, userDetails) }).lean().select("-password")];
+                case 4:
+                    _a.password = _b.sent();
+                    _b.label = 5;
+                case 5: return [4 /*yield*/, userModel_1.default.findByIdAndUpdate(_id, { $set: userDetails }, { new: true, fields: { password: 0 } } // Excluye el campo de la contraseña
+                    ).lean()];
                 case 6:
-                    updatedUser = _a.sent();
+                    updatedUser = _b.sent();
                     return [2 /*return*/, updatedUser];
-                case 7:
-                    err_1 = _a.sent();
-                    logger_1.logger.error("Failed to update user with password: ".concat(err_1.message));
-                    throw err_1;
-                case 8: return [3 /*break*/, 12];
-                case 9:
-                    _a.trys.push([9, 11, , 12]);
-                    return [4 /*yield*/, userModel_1.default.findOneAndUpdate({ _id: _id }, { $set: __assign({}, userDetails) }, { new: true }).lean().select("-password")];
+                case 7: return [4 /*yield*/, userModel_1.default.findByIdAndUpdate(_id, { $set: userDetails }, { new: true, fields: { password: 0 } } // Excluye el campo de la contraseña
+                    ).lean()];
+                case 8:
+                    updatedUser = _b.sent();
+                    return [2 /*return*/, updatedUser];
+                case 9: return [3 /*break*/, 11];
                 case 10:
-                    updatedUser = _a.sent();
-                    return [2 /*return*/, updatedUser];
-                case 11:
-                    err_2 = _a.sent();
-                    logger_1.logger.error("Failed to update user: ".concat(err_2.message));
-                    throw err_2;
-                case 12: return [2 /*return*/];
+                    err_1 = _b.sent();
+                    logger_1.logger.error("Failed to update user: ".concat(err_1.message));
+                    throw err_1;
+                case 11: return [2 /*return*/];
             }
         });
     });
 }
 function deleteUser(email) {
     return __awaiter(this, void 0, void 0, function () {
-        var err_3;
+        var err_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -120,9 +105,9 @@ function deleteUser(email) {
                     _a.sent();
                     return [2 /*return*/, true];
                 case 2:
-                    err_3 = _a.sent();
-                    logger_1.logger.error("Failed to delete user: ".concat(err_3.message));
-                    throw err_3;
+                    err_2 = _a.sent();
+                    logger_1.logger.error("Failed to delete user: ".concat(err_2.message));
+                    throw err_2;
                 case 3: return [2 /*return*/];
             }
         });

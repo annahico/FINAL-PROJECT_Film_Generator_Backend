@@ -9,19 +9,19 @@ const Trending = new Schema({
     movieSearchCriteria: {
         sort_by: {
             type: String,
-            required: false,
+            required: true,
         },
         with_genres: {
             type: String,
-            required: false,
+            required: true,
         },
         primary_release_year: {
             type: String,
-            required: false,
+            required: true,
         },
         with_keywords: {
             type: String,
-            required: false
+            required: true
         }
     },
     movies:
@@ -45,7 +45,7 @@ const Trending = new Schema({
                 },
                 movieReleaseYear: {
                     type: String,
-                    required: false,
+                    required: true,
                 },
                 movieGenres: {
                     type: String,
@@ -53,7 +53,7 @@ const Trending = new Schema({
                 },
                 moviePopularity: {
                     type: String,
-                    required: false,
+                    required: true,
                 },
 
             },
