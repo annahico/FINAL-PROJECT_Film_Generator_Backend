@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { logger } from '../helpers/logger';
 import { AuthenticatedRequest, JwtPayload } from '../types/custom-types';
@@ -38,7 +38,6 @@ export function getAuth(req: Request, res: Response, next: NextFunction) {
         const jwtSecret = process.env.jwtSecret || '';
         const tokenHeader = req.headers['x-auth-token'];
         if (tokenHeader) {
-            // Asegúrate de que tokenHeader sea una cadena
             const token = Array.isArray(tokenHeader) ? tokenHeader[0] : tokenHeader;
 
             if (typeof token === 'string') {
@@ -52,3 +51,33 @@ export function getAuth(req: Request, res: Response, next: NextFunction) {
         next();
     }
 }
+
+// Creación de las rutas de la API
+const apiUserRoutes = Router();
+
+// Ruta pública (sin autenticación)
+apiUserRoutes.get('/public', (req: Request, res: Response) => {
+    res.send('This is a public route');
+});
+
+// Ruta protegida (requiere autenticación)
+apiUserRoutes.get('/protected', auth, (req: Request, res: Response) => {
+    res.send('This is a protected route, you are authenticated!');
+});
+
+// Ruta semi-protegida (opcionalmente autenticada)
+apiUserRoutes.get('/semi-protected', getAuth, (req: Request, res: Response) => {
+    if ((req as unknown as AuthenticatedRequest).token) {
+        res.send('You are authenticated, access granted to semi-protected content');
+    } else {
+        res.send('You are not authenticated, but you can still access this route');
+    }
+});
+
+// Ejemplo de manejo de errores
+apiUserRoutes.use((err: Error, req: Request, res: Response) => {
+    logger.error(`Unexpected error: ${err.message}`);
+    res.status(500).send('Internal server error');
+});
+
+export default apiUserRoutes;
