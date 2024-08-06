@@ -14,10 +14,7 @@ database.connect();
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(cors({
-    origin: 'http://localhost:3000',
-    credentials: true,
-}));
+app.use(cors());
 
 // Definir rutas
 app.use("/api/v1/auth", userRouter);
